@@ -36,25 +36,23 @@ user function FINR85()
 	private cTipPer		:= "1"
 	private cPrdG		:= "1"
 
-	aadd(aPergs, {2, "Selecionar filiais especificas?",				cFilSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	aadd(aPergs, {2, "Imprime Produtos ao final de cada título?",	cProdSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	aadd(aPergs, {2, "Mostra informacoes de baixa?",				cMovSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	aadd(aPergs, {2, "Zerar taxas e multas?",						cZeraJurSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	aadd(aPergs, {2, "Taxas de juros padrão?",						cJurPadSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	aadd(aPergs, {2, "Selecionar filiais especificas",				cFilSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	aadd(aPergs, {2, "Imprime Produtos ao final de cada título",	cProdSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	aadd(aPergs, {2, "Mostra informacoes de baixa",				cMovSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	aadd(aPergs, {2, "Zerar taxas e multas",						cZeraJurSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	aadd(aPergs, {2, "Taxas de juros padrão",						cJurPadSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {1, "TxJurosMensal",								nJur,		"@E 999.99",	".T.",	"",	".T.",	80,	.F.})
 	aadd(aPergs, {1, "Multa",										nMulta,		"@E 99,999.99",	".T.",	"",	".T.",	80,	.F.})
-	aadd(aPergs, {2, "Tipo de agrupamento?",						cTipG,		;
+	aadd(aPergs, {2, "Tipo de agrupamento",						cTipG,		;
 		{;
 		"1=Cliente", ;
 		"2=Dt.Venc", ;
 		"3=Dt.Emissao", ;
-		"10=Banco", ;
-		"11=Contrato", ;
-		"12=Hierarquia Com. Diretoria", ;
-		"13=Hierarquia Com. Regional", ;
-		"14=Hierarquia Com. Vendedor", ;
+		"4=Banco", ;
+		"5=Contrato", ;
+		"6=Hierarquia de Vendas", ;
 		},					120, ".T.", .F.})
-	aadd(aPergs, {2, "Tipo de Periodo da data?",					cTipPer,		;
+	aadd(aPergs, {2, "Tipo de Periodo de data",					cTipPer,		;
 		{;
 		"1=Diário", ;
 		"2=Semanal", ;
@@ -63,7 +61,13 @@ user function FINR85()
 		"5=Semestral", ;
 		"6=Anual", ;
 		},					120, ".T.", .F.})
-	aadd(aPergs, {2, "Grupo de produto?",						cPrdG,		;
+	aadd(aPergs, {2, "Tipo de Hierarquia vendas",					cTipPer,		;
+		{;
+		"1=Diretoria", ;
+		"2=Regional", ;
+		"3=Vendedor", ;
+		},					120, ".T.", .F.})
+	aadd(aPergs, {2, "Grupo de produto",							cPrdG,		;
 		{;
 		"1=CRF", ;
 		"2=Especialidade", ;
@@ -544,6 +548,14 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += "	E1_EXT.ATRASO, "
 	cQueryX += "	E1_EXT.WEMISSAO, "
 	cQueryX += "	E1_EXT.WVENCTO, "
+	cQueryX += "	E1_EXT.QEMISSAO, "
+	cQueryX += "	E1_EXT.QVENCTO, "
+	cQueryX += "	E1_EXT.MEMISSAO, "
+	cQueryX += "	E1_EXT.MVENCTO, "
+	cQueryX += "	E1_EXT.SEMISSAO, "
+	cQueryX += "	E1_EXT.SVENCTO, "
+	cQueryX += "	E1_EXT.AEMISSAO, "
+	cQueryX += "	E1_EXT.AVENCTO, "
 	cQueryX += "	E1_EXT.SALDO, "
 	cQueryX += "	E1_EXT.NUMBCO, "
 	cQueryX += "	E1_EXT.ULTIMA_BAIXA, "
@@ -582,18 +594,33 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += "		E1.E1_VALOR AS VL_ORIG, "
 	cQueryX += "		1.5 AS TX_JUROS, "
 	cQueryX += "		E1.E1_VLMULTA AS MULTA, "
-	#IFDEF SQL_ORACLE
-		cQueryX += "		TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO, "
-		cQueryX += "		TRUNC((TO_DATE(E1.E1_EMISSAO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WEMISSAO, "
-		cQueryX += "		TRUNC((TO_DATE(E1.E1_VENCTO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WVENCTO, "
-	#ELSE // Caso seja SQL Server
-		cQueryX += "		DATEDIFF "
-		cQueryX += "		( "
-		cQueryX += "			DAY, "
-		cQueryX += "			SUBSTRING(E1.E1_VENCREA, 1, 4) || '/' || SUBSTRING(E1.E1_VENCREA, 5, 2) || '/' || SUBSTRING(E1.E1_VENCREA, 7, 2), "
-		cQueryX += "			GETDATE() "
-		cQueryX += "		) AS ATRASO, "
-	#ENDIF
+	cQueryX += "		TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO, "
+	cQueryX += "		TRUNC((TO_DATE(E1.E1_EMISSAO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WEMISSAO, "
+	cQueryX += "		TRUNC((TO_DATE(E1.E1_VENCTO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WVENCTO, "
+	cQueryX += "		CASE "
+	cQueryX += "			WHEN SUBSTR(E1.E1_EMISSAO, 7, 2) <= 15 "
+	cQueryX += "			THEN SUBSTR(E1.E1_EMISSAO, 1, 6) || '.1' "
+	cQueryX += "			ELSE SUBSTR(E1.E1_EMISSAO, 1, 6) || '.2' "
+	cQueryX += "		END AS QEMISSAO,  "
+	cQueryX += "		CASE "
+	cQueryX += "			WHEN SUBSTR(E1.E1_VENCTO, 7, 2) <= 15 "
+	cQueryX += "			THEN SUBSTR(E1.E1_VENCTO, 1, 6) || '.1' "
+	cQueryX += "			ELSE SUBSTR(E1.E1_VENCTO, 1, 6) || '.2' "
+	cQueryX += "		END AS QVENCTO,  "
+	cQueryX += "		SUBSTR(E1.E1_EMISSAO, 1, 6) AS MEMISSAO,  "
+	cQueryX += "		SUBSTR(E1.E1_VENCTO, 1, 6) AS MVENCTO,  "
+	cQueryX += "		CASE "
+	cQueryX += "			WHEN SUBSTR(E1.E1_EMISSAO, 5, 2) <= 6 "
+	cQueryX += "			THEN SUBSTR(E1.E1_EMISSAO, 1, 4) || '.1' "
+	cQueryX += "			ELSE SUBSTR(E1.E1_EMISSAO, 1, 4) || '.2' "
+	cQueryX += "		END AS SEMISSAO,  "
+	cQueryX += "		CASE "
+	cQueryX += "			WHEN SUBSTR(E1.E1_VENCTO, 5, 2) <= 6 "
+	cQueryX += "			THEN SUBSTR(E1.E1_VENCTO, 1, 4) || '.1' "
+	cQueryX += "			ELSE SUBSTR(E1.E1_VENCTO, 1, 4) || '.2' "
+	cQueryX += "		END AS SVENCTO, "
+	cQueryX += "		SUBSTR(E1.E1_EMISSAO, 1, 4) AS AEMISSAO, "
+	cQueryX += "		SUBSTR(E1.E1_VENCTO, 1, 4) AS AVENCTO, "
 	cQueryX += "		E1.E1_SALDO AS SALDO, "
 	cQueryX += "		E1.E1_NUMBCO AS NUMBCO, "
 	cQueryX += "		E1.E1_BAIXA AS ULTIMA_BAIXA, "
