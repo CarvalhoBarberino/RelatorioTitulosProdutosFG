@@ -2,7 +2,6 @@
 #INCLUDE "rwmake.ch"
 #INCLUDE "TOPCONN.ch"
 
-#DEFINE SQL_ORACLE // Usado quando for rodar na base do Cliente
 //#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
 /*/{Protheus.doc} FINR85
@@ -16,6 +15,7 @@ user function FINR85()
 	local oReport
 	local aPergs		:= {}
 	local areaPreserv	:= getArea()
+	local nI
 
 	private oSecE1		:= Nil
 	private oSecE5		:= Nil
@@ -35,15 +35,56 @@ user function FINR85()
 	private cTipG		:= "1"
 	private cTipPer		:= "1"
 	private cPrdG		:= "1"
+	private cTipHier	:= "1"
+	private aFil		:= {}
+
+	private cFil := ""
+	private cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
+	private cListaSituacoes := "'0', '1', '2', '3', '4', '5', '6', '7', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'"
+	private cDtVenc0 := Ctod(Space(8))
+	private cDtVenc1 := Ctod(Space(8))
+	private cDtEmis0 := Ctod(Space(8))
+	private cDtEmis1 := Ctod(Space(8))
 
 	aadd(aPergs, {2, "Selecionar filiais especificas",				cFilSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	//aAdd(aPergs, {1, "Filiais ex: 'FG01', 'FG02'",					cFil,			"",				"",		"",	"",		50,	.T.})
+	aAdd(aPergs, {1, "Vencimento de",								cDtVenc0,		"",				"",		"",	"",		50,	.T.})
+	aAdd(aPergs, {1, "Vencimento até",								cDtVenc1,		"",				"",		"",	"",		50,	.T.})
+	aAdd(aPergs, {1, "Emissao de",									cDtEmis0,		"",				"",		"",	"",		50,	.T.})
+	aAdd(aPergs, {1, "Emissao até",									cDtEmis1,		"",				"",		"",	"",		50,	.T.})
+
+	if !ParamBox(aPergs, "Parametros de filtro")
+		msgAlert("Os parametros não foram carregados", "UFINR85.PRW")
+		return
+	else
+		cFilSN		:= MV_PAR01
+		cDtVenc0	:= dToS(MV_PAR02)
+		cDtVenc1	:= dToS(MV_PAR03)
+		cDtEmis0	:= dToS(MV_PAR04)
+		cDtEmis1	:= dToS(MV_PAR05)
+	EndIf
+
+	if cFilSN == "1" // Seleciona filiais
+		aFil := FwListBranches( .T. , .F. , .T. , {'FLAG', 'SM0_CODFIL', 'SM0_NOMRED', 'SM0_CGC', 'SM0_INSC', 'SM0_INSCM'}) // https://tdn.totvs.com/display/public/framework/FwListBranches
+		cFil := ""
+		for nI := 1 to len(aFil)
+			if aFil[nI][1]
+				cFil += "'" + aFil[nI][2] + "', "
+			endIf
+		next
+		cFil := subString(cFil, 1, len(cFil) - 2)
+	else
+		cFil := ""
+	endif
+	
+	aPergs := {}
 	aadd(aPergs, {2, "Imprime Produtos ao final de cada título",	cProdSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	aadd(aPergs, {2, "Mostra informacoes de baixa",				cMovSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	aadd(aPergs, {2, "Mostra informacoes de baixa",					cMovSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {2, "Zerar taxas e multas",						cZeraJurSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {2, "Taxas de juros padrão",						cJurPadSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	aadd(aPergs, {1, "TxJurosMensal",								nJur,		"@E 999.99",	".T.",	"",	".T.",	80,	.F.})
-	aadd(aPergs, {1, "Multa",										nMulta,		"@E 99,999.99",	".T.",	"",	".T.",	80,	.F.})
-	aadd(aPergs, {2, "Tipo de agrupamento",						cTipG,		;
+	aadd(aPergs, {1, "TxJurosMensal",								nJur,			"@E 999.99",	".T.",	"",	".T.",	80,	.F.})
+	aadd(aPergs, {1, "Multa",										nMulta,			"@E 99,999.99",	".T.",	"",	".T.",	80,	.F.})
+	aadd(aPergs, {2, "Tipo de agrupamento",							cTipG,			;
 		{;
 		"1=Cliente", ;
 		"2=Dt.Venc", ;
@@ -52,7 +93,7 @@ user function FINR85()
 		"5=Contrato", ;
 		"6=Hierarquia de Vendas", ;
 		},					120, ".T.", .F.})
-	aadd(aPergs, {2, "Tipo de Periodo de data",					cTipPer,		;
+	aadd(aPergs, {2, "Tipo de Periodo de data",						cTipPer,		;
 		{;
 		"1=Diário", ;
 		"2=Semanal", ;
@@ -61,11 +102,11 @@ user function FINR85()
 		"5=Semestral", ;
 		"6=Anual", ;
 		},					120, ".T.", .F.})
-	aadd(aPergs, {2, "Tipo de Hierarquia vendas",					cTipPer,		;
+	aadd(aPergs, {2, "Tipo de Hierarquia vendas",					cTipHier,		;
 		{;
 		"1=Diretoria", ;
 		"2=Regional", ;
-		"3=Vendedor", ;
+		"3=Nome de vendedor", ;
 		},					120, ".T.", .F.})
 	aadd(aPergs, {2, "Grupo de produto",							cPrdG,		;
 		{;
@@ -74,24 +115,21 @@ user function FINR85()
 		"3=Biologico", ;
 		"4=Outros", ;
 		},					120, ".T.", .F.})
-	if !ParamBox(aPergs, "Informe os parâmetros")
+	if !ParamBox(aPergs, "Parâmetros do agrupamento")
 		msgAlert("Os parametros não foram carregados", "UFINR85.PRW")
 		return
 	else
-		cFilSN		:= MV_PAR01
-		cProdSN		:= MV_PAR02
-		cMovSN		:= MV_PAR03
-		cZeraJurSN	:= MV_PAR04
-		cJurPadSN	:= MV_PAR05
-		nJur		:= MV_PAR06
-		nMulta		:= MV_PAR07
-		cTipG		:= MV_PAR08
-		cPrdG		:= MV_PAR09
+		cProdSN		:= MV_PAR01
+		cMovSN		:= MV_PAR02
+		cZeraJurSN	:= MV_PAR03
+		cJurPadSN	:= MV_PAR04
+		nJur		:= MV_PAR05
+		nMulta		:= MV_PAR06
+		cTipG		:= MV_PAR07
+		cTipPer		:= MV_PAR08
+		cTipHier	:= MV_PAR09
+		cPrdG		:= MV_PAR10
 	EndIf
-
-	if cFilSN == "1"
-		// Seleciona filiais
-	endIf
 
 	if cZeraJurSN == "1"
 		nJur := 0
@@ -447,17 +485,10 @@ return
 /*/
 static function montaE1()
 	local cQuery1			:= ""
-	local cFil				:= ""
 	local cListaClientes	:= ""
 
-	cFil := "'FG01', 'FG02'"
 	cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
-	cListaSituacoes := "'0', '1', '2', '3', '4', '5', '6', '7', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'"
-	cDtVenc0 := '20250101'
-	cDtVenc1 := '20250805'
-	cDtEmis0 := '20250101'
-	cDtEmis1 := '20250805'
-	
+
 	cQuery1 := montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
 	If Select(cAliasE1) > 0
 		DbSelectArea(cAliasE1)
@@ -493,32 +524,38 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cWhere1 += "	WHERE "
 	cWhere1 += "		E1.E1_TIPO = 'NF' "
 	#IFNDEF SEM_PARAMETROS
-		cWhere1 += "		AND E1.E1_FILORIG IN (" + cFil + ") "
+		if !empty(cFil)
+			cWhere1 += "		AND E1.E1_FILORIG IN (" + cFil + ") "
+		endIf
 		cWhere1 += "		AND E1.E1_CLIENTE || '-' || E1.E1_LOJA IN (" + cListaClientes + ") "
 		cWhere1 += "		AND E1.E1_SITUACA IN (" + cListaSituacoes + ") "
-		cWhere1 += "		AND E1.E1_VENCTO BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' "
+		cWhere1 += "		AND E1.E1_VENCREA BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' "
 		cWhere1 += "		AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' "
 	#ENDIF
 	cWhere1 += "		AND E1.E1_SALDO <> 0 "
 	cWhere1 += "		AND E1.D_E_L_E_T_ = '' "
 
 	cOrder1 += "ORDER BY "
-	if cTipG == "1"
+	if cTipG == "1" // por cliente
 		cOrder1 += "	CLI_NOME, LOJA, DOCUMENTO, PARCELA "
-	elseIf cTipG == "2"
+	elseIf cTipG == "2" // por vencimento
 		cOrder1 += "	VENCIMENTO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
-	elseIf cTipG == "3"
+	elseIf cTipG == "3" // por emissao
 		cOrder1 += "	EMISSAO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
-	elseIf cTipG == "10"
+	elseIf cTipG == "4" // por banco
 		cOrder1 += "	BANCO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
-	elseIf cTipG == "11"
+	elseIf cTipG == "5" // por contrato
 		cOrder1 += "	CONTRATO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
-	elseIf cTipG == "12"
-		cOrder1 += "	VEND_GER, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
-	elseIf cTipG == "13"
-		cOrder1 += "	VEND_REGI, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
-	elseIf cTipG == "14"
-		cOrder1 += "	VEND_NOME, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+	elseIf cTipG == "6" // por hierarquia de vendas
+		if cTipHier == "1" // por diretoria
+			cOrder1 += "	VEND_GER, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+		elseIf cTipHier == "2" // por regiao
+			cOrder1 += "	VEND_REGI, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+		elseIf cTipHier == "3" // por nome de vendedor
+			cOrder1 += "	VEND_NOME, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+		else
+			msgAlert("falha no tipo de agrupamento (hierarquia)", "UFINR85.PRW")
+		endif
 	else
 		msgAlert("falha no tipo de agrupamento", "UFINR85.PRW")
 		cOrder1 += "	CLI_NOME, LOJA, DOCUMENTO, PARCELA "
