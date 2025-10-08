@@ -2,7 +2,7 @@
 #INCLUDE "rwmake.ch"
 #INCLUDE "TOPCONN.ch"
 
-#DEFINE DEV
+//#DEFINE MOSTRA_QUERY
 //#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
 /*/{Protheus.doc} FINR85
@@ -48,12 +48,11 @@ user function FINR85()
 	private cSafra		:= ""
 	private cCultura	:= ""
 
-	//private cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
 	private cDtVenc0	:= Ctod(Space(8))
 	private cDtVenc1	:= Ctod(Space(8))
 	private cDtEmis0	:= Ctod(Space(8))
 	private cDtEmis1	:= Ctod(Space(8))
-	#IFDEF DEV
+	#IFDEF MOSTRA_QUERY
 		private cMostraE5	:= MsgYesNo("Mostrar Query E5", "UFINR85.PRW")
 		private cMostraD2	:= MsgYesNo("Mostrar Query D2", "UFINR85.PRW")
 	#ENDIF
@@ -80,7 +79,7 @@ user function FINR85()
 	aAdd(aPergs, {1, "Safra",										cSafra,			"",				"",		"",	"",		50,	.F.})
 	aAdd(aPergs, {1, "Cultura",										cCultura,		"",				"",		"",	"",		50,	.F.})
 
-	if !ParamBox(aPergs, "Parametros de filtro")
+	if !ParamBox(aPergs, "Parametros de filtro") // https://terminaldeinformacao.com/knowledgebase/parambox/
 		msgAlert("Os parametros não foram carregados", "UFINR85.PRW")
 		return
 	else
@@ -117,7 +116,7 @@ user function FINR85()
 	endif
 	
 	if cSitSN == "1" // Seleciona situacoes
-		if F_Opcoes(;	// https://terminaldeinformacao.com/2024/02/27/abrindo-uma-tela-para-marcacao-de-registros-com-a-f_opcoes-maratona-advpl-e-tl-261/
+		if F_Opcoes(;
 			@aSitu,;	//uVarRet
 			"Filtro de tipos de situacoes",;	//cTitulo
 			{"0-CARTEIRA", "1-SIMPLES", "2-DESCONTADA", "3-CAUCIONADA", "4-VINCULADA", "5-COM ADVOGADO", "6-JUDICIAL", "7-CAUÇÃO DESCONTADA", "F-CARTEIRA PROTESTO", "G-CARTEIRA ACORDO", "H-CARTÓRIO", "I-CARTEIRA CAIXA LOJA", "J-CARTEIRA CAIXA GERAL", "K-PIX", "L-PDD", "M-PCLD", "N-CHEQUES DEVOLVIDOS", "O-TESTE"},;		//aOpcoes
@@ -134,7 +133,7 @@ user function FINR85()
 			.F.,;		//lNotPesq
 			.T.,;		//lForceRe
 			Nil;		//cF3
-			)
+			)			// https://terminaldeinformacao.com/2024/02/27/abrindo-uma-tela-para-marcacao-de-registros-com-a-f_opcoes-maratona-advpl-e-tl-261/
 			if len(aSitu) > 0
 				for nI := 1 to len(aSitu)
 					cSit += aSitu[nI] + ";"
@@ -232,7 +231,7 @@ static function fReportDef()
 	local oSecE1		:= Nil
 	local oFuncCount	:= Nil
 	local oFuncVOrig	:= Nil
-	//local oFuncVAtu		:= Nil
+	local oFuncVAtu		:= Nil
 	local oFuncSaldo	:= Nil
 
 	//Criacao do componente de impressao
@@ -349,7 +348,6 @@ return oReport
 	@param oReport, TReport,
 /*/
 static function fGoPrint(oReport)
-	//local cPerg				:= "FIN130"
 	local nAtual			:= 0
 	local nTotal			:= 0
 	local lAliasE1Vazio		:= .T.
@@ -478,7 +476,7 @@ static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja)
 	cQueryX += "ORDER BY "
 	cQueryX += "	DATA_MOV "
 
-	#IFDEF DEV
+	#IFDEF MOSTRA_QUERY
 		if cMostraE5
 			ShowLog(cQueryX)
 		endIf
@@ -573,7 +571,7 @@ static function montaD2(cFil, cDoc, cCodCli, cLoja)
 	cQueryX += "ORDER BY "
 	cQueryX += "	ITEM "
 
-	#IFDEF DEV
+	#IFDEF MOSTRA_QUERY
 		if cMostraD2
 			ShowLog(cQueryX)
 		endIf
@@ -598,7 +596,7 @@ static function montaE1()
 
 	cQuery1 := montaQueryE1(cFil, cCli, cSit, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
 
-	#IFDEF DEV
+	#IFDEF MOSTRA_QUERY
 		if MsgYesNo("Mostrar Query E1", "UFINR85.PRW")
 			ShowLog(cQuery1)
 			return
@@ -849,12 +847,6 @@ return cQueryX
 
 /*
 	https://terminaldeinformacao.com/2024/02/27/abrindo-uma-tela-para-marcacao-de-registros-com-a-f_opcoes-maratona-advpl-e-tl-261/
+	https://tdn.totvs.com/display/public/framework/FwListBranches
 	https://terminaldeinformacao.com/knowledgebase/parambox/
-
-	Verificar com consultor funcional:
-		Se marcado como não, o sistema utilizara as taxas de juros e multa padrão. Onde estão essses padrões
-		Juros multa e antecipação. O que é antecipação?
-		Agrupamentos "E" ou "OU" ??
-		Juros mensal ou diário?
-		Agrupamento por contrato?
 */
