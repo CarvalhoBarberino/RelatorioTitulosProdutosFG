@@ -212,7 +212,11 @@ return
 /*/
 static function fReportDef()
 	local oReport
-	local oSecE1 := Nil
+	local oSecE1		:= Nil
+	local oFuncCount	:= Nil
+	local oFuncVOrig	:= Nil
+	//local oFuncVAtu		:= Nil
+	local oFuncSaldo	:= Nil
 
 	//Criacao do componente de impressao
 	oReport	:= TReport():New(;
@@ -271,6 +275,7 @@ static function fReportDef()
 	//TRCell():New(oSecE1, "NUMBCO", cAliasE1, "NumBco", , 16, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "VL_JUROS", cAliasE1, "Juro", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "ATRASO", cAliasE1, "Atraso", , 6, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VL_CORRIG", cAliasE1, "V.Corri", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "VEND_NOME", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
 
 	if cMovSN == "1"
@@ -301,8 +306,10 @@ static function fReportDef()
 	oBreak := TRBreak():New(oSecE1, oSecE1:Cell("CLI_COD"), {||"Total da QuebraCLI"}, .F.)
 
 	//Totalizadores
-	oFunc:=TRFunction():New(oSecE1:Cell("SALDO"), , "SUM", oBreak, , "@E 9,999,999.00", , .F.)
-
+	oFuncCount	:= TRFunction():New(oSecE1:Cell("CLI_COD"), , "COUNT", oBreak, , "@E 999,999", , .F.)
+	oFuncVOrig	:= TRFunction():New(oSecE1:Cell("VL_ORIG"), , "SUM", oBreak, , "@E 9,999,999.00", , .F.)
+	oFuncVAtu	:= TRFunction():New(oSecE1:Cell("VL_CORRIG"), , "SUM", oBreak, , "@E 9,999,999.00", , .F.)
+	oFuncSaldo	:= TRFunction():New(oSecE1:Cell("SALDO"), , "SUM", oBreak, , "@E 9,999,999.00", , .F.)
 
 
 return oReport
