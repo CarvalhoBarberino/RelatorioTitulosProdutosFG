@@ -27,6 +27,7 @@ user function FINR85()
 	private cAliasTot	:= "UFINR85TOT"
 	private cFilSN		:= "2"
 	private cSitSN		:= "2"
+	private cCliSN		:= "2"
 	private cProdSN		:= "1"
 	private cMovSN		:= "1"
 	private cJurPadSN	:= "2"
@@ -43,10 +44,11 @@ user function FINR85()
 	private cFil		:= ""
 	private aSitu		:= {}
 	private cSit		:= ""
+	private cCli		:= ""
 	private cSafra		:= ""
 	private cCultura	:= ""
 
-	private cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
+	//private cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
 	private cDtVenc0	:= Ctod(Space(8))
 	private cDtVenc1	:= Ctod(Space(8))
 	private cDtEmis0	:= Ctod(Space(8))
@@ -63,6 +65,7 @@ user function FINR85()
 	aAdd(aPergs, {1, "Emissao até",									cDtEmis1,		"",				"",		"",	"",		50,	.T.})
 	aadd(aPergs, {2, "Selecionar filiais especificas",				cFilSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {2, "Selecionar Situacoes especificas",			cSitSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	aadd(aPergs, {2, "Selecionar clientes especificos",				cCliSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {2, "Zerar taxas e multas",						cZeraJurSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {2, "Taxas de juros padrão",						cJurPadSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {1, "TxJurosMensal",								nJur,			"@E 999.99",	".T.",	"",	".T.",	80,	.F.})
@@ -87,13 +90,14 @@ user function FINR85()
 		cDtEmis1	:= dToS(MV_PAR04)
 		cFilSN		:= MV_PAR05
 		cSitSN		:= MV_PAR06
-		cZeraJurSN	:= MV_PAR07
-		cJurPadSN	:= MV_PAR08
-		nJur		:= MV_PAR09
-		nMulta		:= MV_PAR10
-		cPrdG		:= MV_PAR11
-		cSafra		:= MV_PAR12
-		cCultura	:= MV_PAR13
+		cCliSN		:= MV_PAR07
+		cZeraJurSN	:= MV_PAR08
+		cJurPadSN	:= MV_PAR09
+		nJur		:= MV_PAR10
+		nMulta		:= MV_PAR11
+		cPrdG		:= MV_PAR12
+		cSafra		:= MV_PAR13
+		cCultura	:= MV_PAR14
 	EndIf
 
 	cFil := ""
@@ -107,8 +111,11 @@ user function FINR85()
 			next
 			cFil := subString(cFil, 1, len(cFil) - 1)
 			cFil := FormatIN(cFil,";")
+		else
+			msgAlert("As filiais não foram carregadas. Não ha filtro de filiais", "UFINR85.PRW")
 		endIf
 	endif
+	
 	if cSitSN == "1" // Seleciona situacoes
 		if F_Opcoes(;	// https://terminaldeinformacao.com/2024/02/27/abrindo-uma-tela-para-marcacao-de-registros-com-a-f_opcoes-maratona-advpl-e-tl-261/
 			@aSitu,;	//uVarRet
@@ -136,9 +143,17 @@ user function FINR85()
 				cSit := FormatIN(cSit,";")
 			endIf
 		else
-			msgAlert("Os parametros situacoes não foram carregados", "UFINR85.PRW")
+			msgAlert("Os parametros situacoes não foram carregados. Não há filtro para situações", "UFINR85.PRW")
 		endIf
 	endIf
+
+	cCli := ""
+	if cCliSN == "1" // Seleciona Clientes
+		if !U_FGSelCli(@cCli)
+			msgAlert("Os clientes não foram carregados. Não há filtro para clientes", "UFINR85.PRW")
+			cCli := ""
+		endIf
+	endif
 
 	aPergs := {}
 	aadd(aPergs, {2, "Imprime Produtos ao final de cada título",	cProdSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
@@ -580,11 +595,8 @@ return
 /*/
 static function montaE1()
 	local cQuery1			:= ""
-	local cListaClientes	:= ""
 
-	cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
-
-	cQuery1 := montaQueryE1(cFil, cListaClientes, cSit, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
+	cQuery1 := montaQueryE1(cFil, cCli, cSit, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
 
 	#IFDEF DEV
 		if MsgYesNo("Mostrar Query E1", "UFINR85.PRW")
@@ -612,14 +624,14 @@ return
 	@since 21/08/2025
 	@version 0
 	@param cFil, c, Filial
-	@param cListaClientes, c, Lista com R_E_C_N_O_ de clientes
+	@param cCli, c, string com R_E_C_N_O_ de clientes
 	@param cListaSituacoes, c, Lista com R_E_C_N_O_ de tipos de situacoes
 	@param cDtVenc0, c, data de vencimento inicial do intervalo
 	@param cDtVenc1, c, data de vencimento final do intervalo
 	@param cDtEmis0, c, data de emissao inicio do intervalo
 	@param cDtEmis1, c, data de emissao final do intervalo
 /*/
-static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
+static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
 	local cQueryX	:= ""
 	local cWhere1	:= ""
 	local cOrder1	:= ""
@@ -631,7 +643,9 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 			cFil := "('" + StrTran(xFilial("SE1"), " ", "", , ) + StrTran(fwFilial(), " ", "", , ) + "')"
 		endIf
 		cWhere1 += "		AND E1.E1_FILORIG IN " + cFil + " "
-		cWhere1 += "		AND E1.E1_CLIENTE || '-' || E1.E1_LOJA IN (" + cListaClientes + ") "
+		if !empty(cCli)
+			cWhere1 += "		AND A1.R_E_C_N_O_ IN " + cCli + " "
+		endIf
 		if !empty(cListaSituacoes)
 			cWhere1 += "		AND E1.E1_SITUACA IN " + cListaSituacoes + " "
 		endIf
