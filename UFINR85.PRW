@@ -3,7 +3,7 @@
 #INCLUDE "TOPCONN.ch"
 
 #DEFINE SQL_ORACLE // Usado quando for rodar na base do Cliente
-//#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
+#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
 /*/{Protheus.doc} FINR85
 	Funcao que gera relatorios de titulos com dados do faturamento
@@ -446,6 +446,7 @@ static function montaE1()
 	cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
 	cListaSituacoes := "'0', '1', '2', '3', '4', '5', '6', '7', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'"
 
+/*
 	cQuery1 := montaQueryE1(cFil, cListaClientes, cListaSituacoes)
 	If Select(cAliasE1) > 0
 		DbSelectArea(cAliasE1)
@@ -453,8 +454,9 @@ static function montaE1()
 	EndIf
 	dbUseArea(.T., "TOPCONN", TCGenQry(,,ChangeQuery(cQuery1)), cAliasE1, .F., .T.)
 	dbSelectArea(cAliasE1)
+*/
 	
-	/*
+	
 	BeginSql alias cAliasE1
 		SELECT
 			E1_EXT.E1_REC,
@@ -540,7 +542,6 @@ static function montaE1()
 		ORDER BY
 			CLI_NOME, LOJA, DOCUMENTO, PARCELA
 	EndSql
-	*/
 
 	If (cAliasE1)->(Eof())
 		msgAlert("Nao existem dados no alias " + cAliasE1, "UFINR85.PRW")
@@ -689,6 +690,9 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += cWhere1
 	cQueryX += "	) E1_EXT "
 	cQueryX += cOrder1
+
+	msgAlert(cQueryX, "UFINR85.PRW")
+	cQueryX := ""
 
 return cQueryX
 
