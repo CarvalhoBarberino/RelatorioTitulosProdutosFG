@@ -102,10 +102,11 @@ user function FINR85()
 		if len(aFil) > 0
 			for nI := 1 to len(aFil)
 				if aFil[nI][1]
-					cFil += "'" + aFil[nI][2] + "', "
+					cFil += aFil[nI][2] + ";"
 				endIf
 			next
-			cFil := subString(cFil, 1, len(cFil) - 2)
+			cFil := subString(cFil, 1, len(cFil) - 1)
+			cFil := FormatIN(cFil,";")
 		endIf
 	endif
 	if cSitSN == "1" // Seleciona situacoes
@@ -129,9 +130,10 @@ user function FINR85()
 			)
 			if len(aSitu) > 0
 				for nI := 1 to len(aSitu)
-					cSit += "'" + aSitu[nI] + "', "
+					cSit += aSitu[nI] + ";"
 				next
-				cSit := substring(cSit, 1, len(cSit) - 2)
+				cSit := substring(cSit, 1, len(cSit) - 1)
+				cSit := FormatIN(cSit,";")
 			endIf
 		else
 			msgAlert("Os parametros situacoes não foram carregados", "UFINR85.PRW")
@@ -626,12 +628,12 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cWhere1 += "		E1.E1_TIPO = 'NF' "
 	#IFNDEF SEM_PARAMETROS
 		if empty(cFil)
-			cFil := "'" + StrTran(xFilial("SE1"), " ", "", , ) + StrTran(fwFilial(), " ", "", , ) + "'"
+			cFil := "('" + StrTran(xFilial("SE1"), " ", "", , ) + StrTran(fwFilial(), " ", "", , ) + "')"
 		endIf
-		cWhere1 += "		AND E1.E1_FILORIG IN (" + cFil + ") "
+		cWhere1 += "		AND E1.E1_FILORIG IN " + cFil + " "
 		cWhere1 += "		AND E1.E1_CLIENTE || '-' || E1.E1_LOJA IN (" + cListaClientes + ") "
 		if !empty(cListaSituacoes)
-			cWhere1 += "		AND E1.E1_SITUACA IN (" + cListaSituacoes + ") "
+			cWhere1 += "		AND E1.E1_SITUACA IN " + cListaSituacoes + " "
 		endIf
 		cWhere1 += "		AND E1.E1_VENCREA BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' "
 		cWhere1 += "		AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' "
