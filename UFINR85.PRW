@@ -446,7 +446,6 @@ static function montaE1()
 	cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
 	cListaSituacoes := "'0', '1', '2', '3', '4', '5', '6', '7', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'"
 
-/*
 	cQuery1 := montaQueryE1(cFil, cListaClientes, cListaSituacoes)
 	If Select(cAliasE1) > 0
 		DbSelectArea(cAliasE1)
@@ -454,94 +453,6 @@ static function montaE1()
 	EndIf
 	dbUseArea(.T., "TOPCONN", TCGenQry(,,ChangeQuery(cQuery1)), cAliasE1, .F., .T.)
 	dbSelectArea(cAliasE1)
-*/
-	
-	
-	BeginSql alias cAliasE1
-		SELECT
-			E1_EXT.E1_REC,
-			E1_EXT.FILIAL,
-			E1_EXT.CLI_COD,
-			E1_EXT.LOJA,
-			E1_EXT.CLI_NOME,
-			E1_EXT.PREFIXO,
-			E1_EXT.DOCUMENTO,
-			E1_EXT.PARCELA,
-			E1_EXT.TIPO,
-			E1_EXT.NATUREZA,
-			E1_EXT.EMISSAO,
-			E1_EXT.VENCIMENTO,
-			E1_EXT.VENC_REAL,
-			E1_EXT.BANCO,
-			E1_EXT.ST,
-			E1_EXT.CONTRATO,
-			E1_EXT.VL_ORIG,
-			E1_EXT.TX_JUROS,
-			E1_EXT.ATRASO,
-			E1_EXT.SALDO,
-			E1_EXT.NUMBCO,
-			E1_EXT.ULTIMA_BAIXA,
-			E1_EXT.VEND_COD,
-			E1_EXT.VEND_NOME,
-			E1_EXT.VEND_REGI,
-			E1_EXT.VEND_GER,
-			CASE
-				WHEN ATRASO > 0 THEN SALDO ELSE 0
-			END AS VL_VENCIDO,
-			CASE
-				WHEN ATRASO > 0 THEN ROUND(SALDO * (TX_JUROS / 100) * (ATRASO / 30.5), 2) + SALDO ELSE 0
-			END AS VL_CORRIG,
-			CASE
-				WHEN ATRASO > 0 THEN ROUND(SALDO * (TX_JUROS / 100) * (ATRASO / 30.5), 2) ELSE 0
-			END AS VL_JUROS
-		FROM
-			(
-			SELECT
-				E1.R_E_C_N_O_ AS E1_REC,
-				E1.E1_FILORIG AS FILIAL,
-				A1.A1_COD AS CLI_COD,
-				A1.A1_LOJA AS LOJA,
-				A1.A1_NOME AS CLI_NOME,
-				E1.E1_PREFIXO AS PREFIXO,
-				E1.E1_NUM AS DOCUMENTO,
-				E1.E1_PARCELA AS PARCELA,
-				E1.E1_TIPO AS TIPO,
-				E1.E1_NATUREZ AS NATUREZA,
-				SUBSTR(E1.E1_EMISSAO, 7, 2) || '/' || SUBSTR(E1.E1_EMISSAO, 5, 2) || '/' || SUBSTR(E1.E1_EMISSAO, 1, 4) AS EMISSAO,
-				SUBSTR(E1.E1_VENCTO, 7, 2) || '/' || SUBSTR(E1.E1_VENCTO, 5, 2) || '/' || SUBSTR(E1.E1_VENCTO, 1, 4) AS VENCIMENTO,
-				SUBSTR(E1.E1_VENCREA, 7, 2) || '/' || SUBSTR(E1.E1_VENCREA, 5, 2) || '/' || SUBSTR(E1.E1_VENCREA, 1, 4) AS VENC_REAL,
-				E1_NUMBCO AS BANCO,
-				E1.E1_SITUACA AS ST,
-				E1.E1_CONTRAT AS CONTRATO,
-				E1.E1_VALOR AS VL_ORIG,
-				1.5 AS TX_JUROS,
-				TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO,
-				E1.E1_SALDO AS SALDO,
-				E1.E1_NUMBCO AS NUMBCO,
-				E1.E1_BAIXA AS ULTIMA_BAIXA,
-				A3.A3_COD AS VEND_COD,
-				A3.A3_NOME AS VEND_NOME,
-				A3.A3_REGIAO AS VEND_REGI,
-				A3.A3_GEREN AS VEND_GER
-			FROM
-				%Table:SE1% E1
-				INNER JOIN
-					%Table:SA1% A1
-					ON E1.E1_CLIENTE = A1.A1_COD
-					AND E1.E1_LOJA = A1.A1_LOJA
-					AND A1.D_E_L_E_T_ = ''
-				LEFT JOIN
-					%Table:SA3% A3
-					ON E1.E1_VEND1 = A3.A3_COD
-					AND A3.D_E_L_E_T_ = ''
-			WHERE
-				E1.E1_TIPO = 'NF'
-				AND E1.E1_SALDO <> 0
-				AND E1.D_E_L_E_T_ = ''
-			) E1_EXT
-		ORDER BY
-			CLI_NOME, LOJA, DOCUMENTO, PARCELA
-	EndSql
 
 	If (cAliasE1)->(Eof())
 		msgAlert("Nao existem dados no alias " + cAliasE1, "UFINR85.PRW")
@@ -602,7 +513,7 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 		return
 	endIf
 
-	cQueryX += "SELECT TOP 1000"
+	cQueryX += "SELECT "
 	cQueryX += "	E1_EXT.E1_REC, "
 	cQueryX += "	E1_EXT.FILIAL, "
 	cQueryX += "	E1_EXT.CLI_COD, "
@@ -651,9 +562,9 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += "		E1.E1_PARCELA AS PARCELA, "
 	cQueryX += "		E1.E1_TIPO AS TIPO, "
 	cQueryX += "		E1.E1_NATUREZ AS NATUREZA, "
-	cQueryX += "		SUBSTRING(E1.E1_EMISSAO, 7, 2) || '/' || SUBSTRING(E1.E1_EMISSAO, 5, 2) || '/' || SUBSTRING(E1.E1_EMISSAO, 1, 4) AS EMISSAO, "
-	cQueryX += "		SUBSTRING(E1.E1_VENCTO, 7, 2) || '/' || SUBSTRING(E1.E1_VENCTO, 5, 2) || '/' || SUBSTRING(E1.E1_VENCTO, 1, 4) AS VENCIMENTO, "
-	cQueryX += "		SUBSTRING(E1.E1_VENCREA, 7, 2) || '/' || SUBSTRING(E1.E1_VENCREA, 5, 2) || '/' || SUBSTRING(E1.E1_VENCREA, 1, 4) AS VENC_REAL, "
+	cQueryX += "		SUBSTR(E1.E1_EMISSAO, 7, 2) || '/' || SUBSTR(E1.E1_EMISSAO, 5, 2) || '/' || SUBSTR(E1.E1_EMISSAO, 1, 4) AS EMISSAO, "
+	cQueryX += "		SUBSTR(E1.E1_VENCTO, 7, 2) || '/' || SUBSTR(E1.E1_VENCTO, 5, 2) || '/' || SUBSTR(E1.E1_VENCTO, 1, 4) AS VENCIMENTO, "
+	cQueryX += "		SUBSTR(E1.E1_VENCREA, 7, 2) || '/' || SUBSTR(E1.E1_VENCREA, 5, 2) || '/' || SUBSTR(E1.E1_VENCREA, 1, 4) AS VENC_REAL, "
 	cQueryX += "		E1_NUMBCO AS BANCO, "
 	cQueryX += "		E1.E1_SITUACA AS ST, "
 	cQueryX += "		E1.E1_CONTRAT AS CONTRATO, "
@@ -690,9 +601,6 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += cWhere1
 	cQueryX += "	) E1_EXT "
 	cQueryX += cOrder1
-
-	msgAlert(cQueryX, "UFINR85.PRW")
-	cQueryX := ""
 
 return cQueryX
 
