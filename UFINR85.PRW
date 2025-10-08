@@ -24,6 +24,7 @@ user function FINR85()
 	private cAliasE5	:= "UFINR85E5"
 	private cAliasD2	:= "UFINR85D2"
 	private cFilSN		:= "2"
+	private cSitSN		:= "2"
 	private cProdSN		:= "1"
 	private cMovSN		:= "1"
 	private cJurPadSN	:= "2"
@@ -37,46 +38,80 @@ user function FINR85()
 	private cPrdG		:= "1"
 	private cTipHier	:= "1"
 	private aFil		:= {}
-
 	private cFil := ""
+
+	private aSitu		:= {}
+	private cSit := ""
+
 	private cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
-	private cListaSituacoes := "'0', '1', '2', '3', '4', '5', '6', '7', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'"
 	private cDtVenc0 := Ctod(Space(8))
 	private cDtVenc1 := Ctod(Space(8))
 	private cDtEmis0 := Ctod(Space(8))
 	private cDtEmis1 := Ctod(Space(8))
 
-	aadd(aPergs, {2, "Selecionar filiais especificas",				cFilSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	//aAdd(aPergs, {1, "Filiais ex: 'FG01', 'FG02'",					cFil,			"",				"",		"",	"",		50,	.T.})
 	aAdd(aPergs, {1, "Vencimento de",								cDtVenc0,		"",				"",		"",	"",		50,	.T.})
 	aAdd(aPergs, {1, "Vencimento até",								cDtVenc1,		"",				"",		"",	"",		50,	.T.})
 	aAdd(aPergs, {1, "Emissao de",									cDtEmis0,		"",				"",		"",	"",		50,	.T.})
 	aAdd(aPergs, {1, "Emissao até",									cDtEmis1,		"",				"",		"",	"",		50,	.T.})
+	aadd(aPergs, {2, "Selecionar filiais especificas",				cFilSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	aadd(aPergs, {2, "Selecionar Situacoes especificas",			cSitSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
 
 	if !ParamBox(aPergs, "Parametros de filtro")
 		msgAlert("Os parametros não foram carregados", "UFINR85.PRW")
 		return
 	else
-		cFilSN		:= MV_PAR01
-		cDtVenc0	:= dToS(MV_PAR02)
-		cDtVenc1	:= dToS(MV_PAR03)
-		cDtEmis0	:= dToS(MV_PAR04)
-		cDtEmis1	:= dToS(MV_PAR05)
+		cDtVenc0	:= dToS(MV_PAR01)
+		cDtVenc1	:= dToS(MV_PAR02)
+		cDtEmis0	:= dToS(MV_PAR03)
+		cDtEmis1	:= dToS(MV_PAR04)
+		cFilSN		:= MV_PAR05
+		cSitSN		:= MV_PAR06
 	EndIf
 
 	if cFilSN == "1" // Seleciona filiais
 		aFil := FwListBranches( .T. , .F. , .T. , {'FLAG', 'SM0_CODFIL', 'SM0_NOMRED', 'SM0_CGC', 'SM0_INSC', 'SM0_INSCM'}) // https://tdn.totvs.com/display/public/framework/FwListBranches
 		cFil := ""
-		for nI := 1 to len(aFil)
-			if aFil[nI][1]
-				cFil += "'" + aFil[nI][2] + "', "
-			endIf
-		next
-		cFil := subString(cFil, 1, len(cFil) - 2)
+		if len(aFil) > 0
+			for nI := 1 to len(aFil)
+				if aFil[nI][1]
+					cFil += "'" + aFil[nI][2] + "', "
+				endIf
+			next
+			cFil := subString(cFil, 1, len(cFil) - 2)
+		endIf
 	else
 		cFil := ""
 	endif
-	
+	if cSitSN == "1" // Seleciona situacoes
+		if F_Opcoes(;	// https://terminaldeinformacao.com/2024/02/27/abrindo-uma-tela-para-marcacao-de-registros-com-a-f_opcoes-maratona-advpl-e-tl-261/
+			@aSitu,;	//uVarRet
+			"Filtro de tipos de situacoes",;	//cTitulo
+			{"0-CARTEIRA", "1-SIMPLES", "2-DESCONTADA", "3-CAUCIONADA", "4-VINCULADA", "5-COM ADVOGADO", "6-JUDICIAL", "7-CAUÇÃO DESCONTADA", "F-CARTEIRA PROTESTO", "G-CARTEIRA ACORDO", "H-CARTÓRIO", "I-CARTEIRA CAIXA LOJA", "J-CARTEIRA CAIXA GERAL", "K-PIX", "L-PDD", "M-PCLD", "N-CHEQUES DEVOLVIDOS", "O-TESTE"},;		//aOpcoes
+			"01234567FGHIJKLMNO",;		//cOpcoes
+			12,;		//nLin1
+			49,;		//nCol1
+			.F.,;		//l1Elem
+			1,;			//nTam
+			999,;		//nElemRet
+			.T.,;		//lMultSelect
+			.F.,;		//lComboBox
+			Nil,;		//cCampo
+			.F.,;		//lNotOrdena
+			.F.,;		//lNotPesq
+			.T.,;		//lForceRe
+			Nil;		//cF3
+			)
+			if len(aSitu) > 0
+				for nI := 1 to len(aSitu)
+					cSit += "'" + aSitu[nI] + "', "
+				next
+				cSit := substring(cSit, 1, len(cSit) - 2)
+			endIf
+		else
+			msgAlert("Os parametros situacoes não foram carregados", "UFINR85.PRW")
+		endIf
+	endIf
+
 	aPergs := {}
 	aadd(aPergs, {2, "Imprime Produtos ao final de cada título",	cProdSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {2, "Mostra informacoes de baixa",					cMovSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
@@ -132,13 +167,16 @@ user function FINR85()
 	EndIf
 
 	if cZeraJurSN == "1"
-		nJur := 0
-		nMulta := 0
-	elseIf cJurPadSN == "1"
-		//usar juros padrão
+		cJur := "0"
+		cMulta := "0"
 	else
-		cJur := Str(nJur, 0, 2)
-		cMulta := Str(nMulta, 0, 2)
+		if cJurPadSN == "1"
+			cJur := "(E1.E1_PORCJUR * 100)"
+			cMulta := "E1.E1_VLMULTA"
+		else
+			cJur := Str(nJur, 0, 2)
+			cMulta := Str(nMulta, 0, 2)
+		endIf
 	endIf
 
 
@@ -489,7 +527,7 @@ static function montaE1()
 
 	cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
 
-	cQuery1 := montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
+	cQuery1 := montaQueryE1(cFil, cListaClientes, cSit, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
 	If Select(cAliasE1) > 0
 		DbSelectArea(cAliasE1)
 		(cAliasE1)->(dbCloseArea())
@@ -528,7 +566,9 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 			cWhere1 += "		AND E1.E1_FILORIG IN (" + cFil + ") "
 		endIf
 		cWhere1 += "		AND E1.E1_CLIENTE || '-' || E1.E1_LOJA IN (" + cListaClientes + ") "
-		cWhere1 += "		AND E1.E1_SITUACA IN (" + cListaSituacoes + ") "
+		if !empty(cListaSituacoes)
+			cWhere1 += "		AND E1.E1_SITUACA IN (" + cListaSituacoes + ") "
+		endIf
 		cWhere1 += "		AND E1.E1_VENCREA BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' "
 		cWhere1 += "		AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' "
 	#ENDIF
@@ -604,7 +644,7 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += "		WHEN ATRASO > 0 THEN SALDO ELSE 0 "
 	cQueryX += "	END AS VL_VENCIDO, "
 	cQueryX += "	CASE "
-	cQueryX += "		WHEN ATRASO > 0 THEN ROUND(SALDO * (TX_JUROS / 100) * (ATRASO / 30.5), 2) + SALDO ELSE 0 "
+	cQueryX += "		WHEN ATRASO > 0 THEN ROUND(SALDO * (TX_JUROS / 100) * (ATRASO / 30.5), 2) + MULTA + SALDO ELSE 0 "
 	cQueryX += "	END AS VL_CORRIG, "
 	cQueryX += "	CASE "
 	cQueryX += "		WHEN ATRASO > 0 THEN ROUND(SALDO * (TX_JUROS / 100) * (ATRASO / 30.5), 2) ELSE 0 "
@@ -629,8 +669,8 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += "		E1.E1_SITUACA AS ST, "
 	cQueryX += "		E1.E1_CONTRAT AS CONTRATO, "
 	cQueryX += "		E1.E1_VALOR AS VL_ORIG, "
-	cQueryX += "		1.5 AS TX_JUROS, "
-	cQueryX += "		E1.E1_VLMULTA AS MULTA, "
+	cQueryX += "		" + cJur + " AS TX_JUROS, "
+	cQueryX += "		" + cMulta + " AS MULTA, "
 	cQueryX += "		TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO, "
 	cQueryX += "		TRUNC((TO_DATE(E1.E1_EMISSAO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WEMISSAO, "
 	cQueryX += "		TRUNC((TO_DATE(E1.E1_VENCTO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WVENCTO, "
@@ -679,6 +719,8 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += cWhere1
 	cQueryX += "	) E1_EXT "
 	cQueryX += cOrder1
+
+	ShowLog(cQueryX)
 
 return cQueryX
 
