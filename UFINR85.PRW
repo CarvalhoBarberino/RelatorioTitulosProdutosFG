@@ -38,11 +38,11 @@ user function FINR85()
 	private cAouD		:= "1"
 	private cMulta		:= ""
 	private cZeraJurSN	:= "2"
-	private aAgrop		:= {"", "", "", "", ""}
+	private aAgrop		:= {"2", "0", "0", "0", "0"}
 	private cTipPer		:= "1"
 	private nPerAD		:= 0
 	private cPrdG		:= "1"
-	private cTipHier	:= "1"
+	private cTipHier	:= "3"
 	private aFil		:= {}
 	private cFil		:= ""
 	private aSitu		:= {}
@@ -79,7 +79,7 @@ user function FINR85()
 		"1=Todos", ;
 		"2=CRF", ;
 		"3=Specialties", ;
-		"4=Biologics/BioControl", ;
+		"4=Biologics/BioControl" ;
 		},					120, ".T.", .F.})
 	aAdd(aPergs, {1, "Safra",										cSafra,			"",				"",		"",	"",		50,	.F.})
 	aAdd(aPergs, {1, "Cultura",										cCultura,		"",				"",		"",	"",		50,	.F.})
@@ -171,7 +171,7 @@ user function FINR85()
 		"3=Dt.Emissao", ;
 		"4=Banco", ;
 		"5=Contrato", ;
-		"6=Hierarquia de Vendas", ;
+		"6=Hierarquia de Vendas" ;
 		},					120, ".T.", .F.})
 	aadd(aPergs, {2, "Agrupamento 2",								aAgrop[2],			;
 		{;
@@ -181,7 +181,7 @@ user function FINR85()
 		"3=Dt.Emissao", ;
 		"4=Banco", ;
 		"5=Contrato", ;
-		"6=Hierarquia de Vendas", ;
+		"6=Hierarquia de Vendas" ;
 		},					120, ".T.", .F.})
 	aadd(aPergs, {2, "Agrupamento 3",								aAgrop[3],			;
 		{;
@@ -191,7 +191,7 @@ user function FINR85()
 		"3=Dt.Emissao", ;
 		"4=Banco", ;
 		"5=Contrato", ;
-		"6=Hierarquia de Vendas", ;
+		"6=Hierarquia de Vendas" ;
 		},					120, ".T.", .F.})
 	aadd(aPergs, {2, "Agrupamento 4",								aAgrop[4],			;
 		{;
@@ -201,7 +201,7 @@ user function FINR85()
 		"3=Dt.Emissao", ;
 		"4=Banco", ;
 		"5=Contrato", ;
-		"6=Hierarquia de Vendas", ;
+		"6=Hierarquia de Vendas" ;
 		},					120, ".T.", .F.})
 	aadd(aPergs, {2, "Agrupamento 5",								aAgrop[5],			;
 		{;
@@ -211,7 +211,7 @@ user function FINR85()
 		"3=Dt.Emissao", ;
 		"4=Banco", ;
 		"5=Contrato", ;
-		"6=Hierarquia de Vendas", ;
+		"6=Hierarquia de Vendas" ;
 		},					120, ".T.", .F.})
 	aadd(aPergs, {2, "Tipo de Periodo de data",						cTipPer,		;
 		{;
@@ -220,13 +220,13 @@ user function FINR85()
 		"3=Quinzenal", ;
 		"4=Mensal", ;
 		"5=Semestral", ;
-		"6=Anual", ;
+		"6=Anual" ;
 		},					120, ".T.", .F.})
 	aadd(aPergs, {2, "Tipo de Hierarquia vendas",					cTipHier,		;
 		{;
 		"1=Diretoria", ;
 		"2=Regional", ;
-		"3=Nome de vendedor", ;
+		"3=Nome de vendedor" ;
 		},					120, ".T.", .F.})
 	if !ParamBox(aPergs, "Parâmetros do agrupamento")
 		msgAlert("Os parametros não foram carregados", NOME_DO_FONTE)
@@ -733,7 +733,6 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 	cWhere1 += "		AND E1.E1_SALDO <> 0 " + CRLF
 	cWhere1 += "		AND E1.D_E_L_E_T_ = '' " + CRLF
 
-	// inicio
 	for nI := 1 to len(aAgrop)
 		for nJ := nI to len(aAgrop)
 			if aAgrop[nI] == aAgrop[nJ] .and. nI < nJ
@@ -804,7 +803,9 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 	next
 	cOrder1 += ", LOJA, DOCUMENTO, PARCELA " + CRLF
 	cOrder1 := StrTran(cOrder1, "	, ", "	", , ) // https://tdn.totvs.com/display/public/framework/StrTran
-	// fim
+	#IFDEF MOSTRA_QUERY
+		ShowLog(cOrder1)
+	#ENDIF
 
 	cQueryX += "SELECT " + CRLF
 	cQueryX += "	E1_EXT.E1_REC, " + CRLF
