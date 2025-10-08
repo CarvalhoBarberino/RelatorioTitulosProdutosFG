@@ -2,7 +2,8 @@
 #INCLUDE "rwmake.ch"
 #INCLUDE "TOPCONN.ch"
 
-//#DEFINE MOSTRA_QUERY
+#DEFINE NOME_DO_FONTE "UFINR85.PRW"
+#DEFINE MOSTRA_QUERY
 //#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
 /*/{Protheus.doc} FINR85
@@ -53,8 +54,8 @@ user function FINR85()
 	private cDtEmis0	:= Ctod(Space(8))
 	private cDtEmis1	:= Ctod(Space(8))
 	#IFDEF MOSTRA_QUERY
-		private cMostraE5	:= MsgYesNo("Mostrar Query E5", "UFINR85.PRW")
-		private cMostraD2	:= MsgYesNo("Mostrar Query D2", "UFINR85.PRW")
+		private cMostraE5	:= MsgYesNo("Mostrar Query E5", NOME_DO_FONTE)
+		private cMostraD2	:= MsgYesNo("Mostrar Query D2", NOME_DO_FONTE)
 	#ENDIF
 	private cBreak		:= ""
 
@@ -80,7 +81,7 @@ user function FINR85()
 	aAdd(aPergs, {1, "Cultura",										cCultura,		"",				"",		"",	"",		50,	.F.})
 
 	if !ParamBox(aPergs, "Parametros de filtro") // https://terminaldeinformacao.com/knowledgebase/parambox/
-		msgAlert("Os parametros não foram carregados", "UFINR85.PRW")
+		msgAlert("Os parametros não foram carregados", NOME_DO_FONTE)
 		return
 	else
 		cDtVenc0	:= dToS(MV_PAR01)
@@ -101,7 +102,7 @@ user function FINR85()
 
 	cFil := ""
 	if cFilSN == "1" // Seleciona filiais
-		aFil := FwListBranches( .T. , .F. , .T. , {'FLAG', 'SM0_CODFIL', 'SM0_NOMRED', 'SM0_CGC', 'SM0_INSC', 'SM0_INSCM'}) // https://tdn.totvs.com/display/public/framework/FwListBranches
+		aFil := FwListBranches( .T. , .T. , .T. , {'FLAG', 'SM0_CODFIL', 'SM0_NOMRED', 'SM0_CGC', 'SM0_INSC', 'SM0_INSCM'}) // https://tdn.totvs.com/display/public/framework/FwListBranches https://tdn.totvs.com/display/framework/FwListBranches https://tdn.totvs.com/pages/viewpage.action?pageId=427052751
 		if len(aFil) > 0
 			for nI := 1 to len(aFil)
 				if aFil[nI][1]
@@ -111,7 +112,7 @@ user function FINR85()
 			cFil := subString(cFil, 1, len(cFil) - 1)
 			cFil := FormatIN(cFil,";")
 		else
-			msgAlert("As filiais não foram carregadas. Não ha filtro de filiais", "UFINR85.PRW")
+			msgAlert("As filiais não foram carregadas. Não ha filtro de filiais", NOME_DO_FONTE)
 		endIf
 	endif
 	
@@ -142,14 +143,14 @@ user function FINR85()
 				cSit := FormatIN(cSit,";")
 			endIf
 		else
-			msgAlert("Os parametros situacoes não foram carregados. Não há filtro para situações", "UFINR85.PRW")
+			msgAlert("Os parametros situacoes não foram carregados. Não há filtro para situações", NOME_DO_FONTE)
 		endIf
 	endIf
 
 	cCli := ""
 	if cCliSN == "1" // Seleciona Clientes
 		if !U_FGSelCli(@cCli)
-			msgAlert("Os clientes não foram carregados. Não há filtro para clientes", "UFINR85.PRW")
+			msgAlert("Os clientes não foram carregados. Não há filtro para clientes", NOME_DO_FONTE)
 			cCli := ""
 		endIf
 	endif
@@ -182,7 +183,7 @@ user function FINR85()
 		"3=Nome de vendedor", ;
 		},					120, ".T.", .F.})
 	if !ParamBox(aPergs, "Parâmetros do agrupamento")
-		msgAlert("Os parametros não foram carregados", "UFINR85.PRW")
+		msgAlert("Os parametros não foram carregados", NOME_DO_FONTE)
 		return
 	else
 		cProdSN		:= MV_PAR01
@@ -207,7 +208,7 @@ user function FINR85()
 
 	montaE1()
 	If Select(cAliasE1) == 0
-		msgAlert("Alias não cAliasE1 não existe. Encerrar", "UFINR85.PRW")
+		msgAlert("Alias não cAliasE1 não existe. Encerrar", NOME_DO_FONTE)
 		return
 	EndIf
 
@@ -449,7 +450,7 @@ return
 static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja)
 	local cQueryX	:= ""
 
-	cQueryX += "SELECT "
+	cQueryX += "SELECT " + CRLF
 	cQueryX += "	E5.R_E_C_N_O_ AS E5_REC, "
 	cQueryX += "	E5.E5_PREFIXO AS PREFIXO, "
 	cQueryX += "	E5.E5_NUMERO AS NUMERO, "
@@ -597,7 +598,7 @@ static function montaE1()
 	cQuery1 := montaQueryE1(cFil, cCli, cSit, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
 
 	#IFDEF MOSTRA_QUERY
-		if MsgYesNo("Mostrar Query E1", "UFINR85.PRW")
+		if MsgYesNo("Mostrar Query E1", NOME_DO_FONTE)
 			ShowLog(cQuery1)
 			return
 		endIf
@@ -611,7 +612,7 @@ static function montaE1()
 	dbSelectArea(cAliasE1)
 
 	If (cAliasE1)->(Eof())
-		msgAlert("Nao existem dados no alias " + cAliasE1, "UFINR85.PRW")
+		msgAlert("Nao existem dados no alias " + cAliasE1, NOME_DO_FONTE)
 	endIf
 return
 
@@ -714,10 +715,10 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 			cBreak := "VEND_NOME"
 			cOrder1 += "	VEND_NOME, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 		else
-			msgAlert("falha no tipo de agrupamento (hierarquia)", "UFINR85.PRW")
+			msgAlert("falha no tipo de agrupamento (hierarquia)", NOME_DO_FONTE)
 		endif
 	else
-		msgAlert("falha no tipo de agrupamento", "UFINR85.PRW")
+		msgAlert("falha no tipo de agrupamento", NOME_DO_FONTE)
 		return
 	endIf
 
