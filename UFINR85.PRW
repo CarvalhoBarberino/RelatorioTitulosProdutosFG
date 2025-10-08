@@ -23,6 +23,7 @@ user function FINR85()
 	private cAliasE1	:= "UFINR85E1"
 	private cAliasE5	:= "UFINR85E5"
 	private cAliasD2	:= "UFINR85D2"
+	private cAliasTot	:= "UFINR85TOT"
 	private cFilSN		:= "2"
 	private cSitSN		:= "2"
 	private cProdSN		:= "1"
@@ -38,16 +39,19 @@ user function FINR85()
 	private cPrdG		:= "1"
 	private cTipHier	:= "1"
 	private aFil		:= {}
-	private cFil := ""
-
+	private cFil		:= ""
 	private aSitu		:= {}
-	private cSit := ""
+	private cSit		:= ""
+	private cSafra		:= ""
+	private cCultura	:= ""
 
 	private cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
 	private cDtVenc0 := Ctod(Space(8))
 	private cDtVenc1 := Ctod(Space(8))
 	private cDtEmis0 := Ctod(Space(8))
 	private cDtEmis1 := Ctod(Space(8))
+	private cMostraE5 := MsgYesNo("Mostrar Query E5", "UFINR85.PRW")
+	private cMostraD2 := MsgYesNo("Mostrar Query D2", "UFINR85.PRW")
 
 	aAdd(aPergs, {1, "Vencimento de",								cDtVenc0,		"",				"",		"",	"",		50,	.T.})
 	aAdd(aPergs, {1, "Vencimento até",								cDtVenc1,		"",				"",		"",	"",		50,	.T.})
@@ -55,6 +59,12 @@ user function FINR85()
 	aAdd(aPergs, {1, "Emissao até",									cDtEmis1,		"",				"",		"",	"",		50,	.T.})
 	aadd(aPergs, {2, "Selecionar filiais especificas",				cFilSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {2, "Selecionar Situacoes especificas",			cSitSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	aadd(aPergs, {2, "Zerar taxas e multas",						cZeraJurSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	aadd(aPergs, {2, "Taxas de juros padrão",						cJurPadSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
+	aadd(aPergs, {1, "TxJurosMensal",								nJur,			"@E 999.99",	".T.",	"",	".T.",	80,	.F.})
+	aadd(aPergs, {1, "Multa",										nMulta,			"@E 99,999.99",	".T.",	"",	".T.",	80,	.F.})
+	aAdd(aPergs, {1, "Safra",										cSafra,			"",				"",		"",	"",		50,	.F.})
+	aAdd(aPergs, {1, "Cultura",										cCultura,		"",				"",		"",	"",		50,	.F.})
 
 	if !ParamBox(aPergs, "Parametros de filtro")
 		msgAlert("Os parametros não foram carregados", "UFINR85.PRW")
@@ -66,6 +76,12 @@ user function FINR85()
 		cDtEmis1	:= dToS(MV_PAR04)
 		cFilSN		:= MV_PAR05
 		cSitSN		:= MV_PAR06
+		cZeraJurSN	:= MV_PAR07
+		cJurPadSN	:= MV_PAR08
+		nJur		:= MV_PAR09
+		nMulta		:= MV_PAR10
+		cSafra		:= MV_PAR11
+		cCultura	:= MV_PAR12
 	EndIf
 
 	if cFilSN == "1" // Seleciona filiais
@@ -115,10 +131,6 @@ user function FINR85()
 	aPergs := {}
 	aadd(aPergs, {2, "Imprime Produtos ao final de cada título",	cProdSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {2, "Mostra informacoes de baixa",					cMovSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	aadd(aPergs, {2, "Zerar taxas e multas",						cZeraJurSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	aadd(aPergs, {2, "Taxas de juros padrão",						cJurPadSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	aadd(aPergs, {1, "TxJurosMensal",								nJur,			"@E 999.99",	".T.",	"",	".T.",	80,	.F.})
-	aadd(aPergs, {1, "Multa",										nMulta,			"@E 99,999.99",	".T.",	"",	".T.",	80,	.F.})
 	aadd(aPergs, {2, "Tipo de agrupamento",							cTipG,			;
 		{;
 		"1=Cliente", ;
@@ -145,10 +157,10 @@ user function FINR85()
 		},					120, ".T.", .F.})
 	aadd(aPergs, {2, "Grupo de produto",							cPrdG,		;
 		{;
-		"1=CRF", ;
-		"2=Especialidade", ;
-		"3=Biologico", ;
-		"4=Outros", ;
+		"1=Todos", ;
+		"2=CRF", ;
+		"3=Specialties", ;
+		"4=Biologics/BioControl", ;
 		},					120, ".T.", .F.})
 	if !ParamBox(aPergs, "Parâmetros do agrupamento")
 		msgAlert("Os parametros não foram carregados", "UFINR85.PRW")
@@ -156,14 +168,10 @@ user function FINR85()
 	else
 		cProdSN		:= MV_PAR01
 		cMovSN		:= MV_PAR02
-		cZeraJurSN	:= MV_PAR03
-		cJurPadSN	:= MV_PAR04
-		nJur		:= MV_PAR05
-		nMulta		:= MV_PAR06
-		cTipG		:= MV_PAR07
-		cTipPer		:= MV_PAR08
-		cTipHier	:= MV_PAR09
-		cPrdG		:= MV_PAR10
+		cTipG		:= MV_PAR03
+		cTipPer		:= MV_PAR04
+		cTipHier	:= MV_PAR05
+		cPrdG		:= MV_PAR06
 	EndIf
 
 	if cZeraJurSN == "1"
@@ -179,8 +187,36 @@ user function FINR85()
 		endIf
 	endIf
 
+	If Select(cAliasTot) > 0
+		DbSelectArea(cAliasTot)
+		(cAliasTot)->(dbCloseArea())
+	EndIf
+	dbCreate(cAliasTot, ;
+		{;
+		{"CONTAGEM",	"N", 6, 0}, ;
+		{"VL_ORIG",		"N", 8, 2}, ;
+		{"SALDO",		"N", 8, 2}, ;
+		{"VL_ATUAL",	"N", 8, 2}, ;
+		}, ;
+		"TOPCONN") // https://tdn.totvs.com/display/tec/DBCreate
+	DBUseArea(.F., 'TOPCONN', cAliasTot, (cAliasTot), .F., .F.)
+	(cAliasTot)->(DBAppend(.F.))
+	(cAliasTot)->CONTAGEM := 0
+	(cAliasTot)->VL_ORIG := 0
+	(cAliasTot)->SALDO := 0
+	(cAliasTot)->VL_ATUAL := 0
+	(cAliasTot)->(DBCommit())
+
+	msgAlert("pausa", "UFINR85.PRW")
+
+RETURN
 
 	montaE1()
+
+	If Select(cAliasE1) == 0
+		msgAlert("Alias não cAliasE1 não existe. Encerrar", "UFINR85.PRW")
+		return
+	EndIf
 
 	oReport := fReportDef()
 	oReport:PrintDialog()
@@ -222,12 +258,15 @@ static function fReportDef()
 		{cAliasE1} /*uTable*/, /*aOrder*/, /*lLoadCells*/, /*lLoadOrder*/, /*uTotalText*/, /*lTotalInLine*/, /*lHeaderPage*/, /*lHeaderBreak*/, /*lPageBreak*/, /*lLineBreak*/, /*nLeftMargin*/, /*lLineStyle*/, /*nColSpace*/, /*lAutoSize*/, /*cCharSeparator*/, /*nLinesBefore*/, /*nCols*/, /*nClrBack*/, /*nClrFore*/, /*nPercentage*/)
 	if cProdSN == "1"
 		//Criando a secao de dados da D2
-		oSecD2	:= TRSection():New(oReport, "SecaoD2", {cAliasE1}, , , , , , , , , , , , , , , , , , , )
+		oSecD2	:= TRSection():New(oReport, "SecaoD2", {cAliasD2}, , , , , , , , , , , , , , , , , , , )
 	endIf
 	if cMovSN == "1"
 		//Criando a secao de dados da E5
 		oSecE5	:= TRSection():New(oReport, "SecaoE5", {cAliasE5}, , , , , , , , , , , , , , , , , , , )
 	endIf
+
+	//Criando secao de totalizador
+	oSecTot := TRSection():New(oReport, "SecaoTotal", {cAliasTot}, , , , , , , , , , , , , , , , , , , )
 
 	//Colunas do relatorio E1
 	TRCell():New(;
@@ -242,7 +281,7 @@ static function fReportDef()
 	TRCell():New(oSecE1, "LOJA", cAliasE1, "Loja", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "CLI_NOME", cAliasE1, "Cliente", , 25, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "PREFIXO", cAliasE1, "Prf", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "DOCUMENTO", cAliasE1, "Doc", , 13, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "DOCUMENTO", cAliasE1, "Doc", , 9, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "PARCELA", cAliasE1, "Parc", , 3, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "TIPO", cAliasE1, "Tp", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "NATUREZA", cAliasE1, "Nature", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
@@ -256,6 +295,7 @@ static function fReportDef()
 	//TRCell():New(oSecE1, "NUMBCO", cAliasE1, "NumBco", , 16, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "VL_JUROS", cAliasE1, "Juro", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "ATRASO", cAliasE1, "Atraso", , 6, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VEND_NOME", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
 
 	if cMovSN == "1"
 		// Colunas do relatorio E5
@@ -281,8 +321,7 @@ static function fReportDef()
 		TRCell():New(oSecD2, "UNIDADE", cAliasD2, "Un", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	endIf
 
-	//Quebras do relatorio
-	oBreak := TRBreak():New(oSecE1, oSecE1:Cell("CLI_COD"), {||"Total da Quebra"}, .F.)
+
 
 
 
@@ -427,6 +466,10 @@ static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja)
 	cQueryX += "ORDER BY "
 	cQueryX += "	DATA_MOV "
 
+	if cMostraE5
+		ShowLog(cQueryX)
+	endIf
+
 	If Select(cAliasE5) > 0
 		DbSelectArea(cAliasE5)
 		(cAliasE5)->(dbCloseArea())
@@ -503,9 +546,22 @@ static function montaD2(cFil, cDoc, cCodCli, cLoja)
 	cQueryX += "	AND D2.D2_FILIAL = '" + cFil + "' "
 	cQueryX += "	AND D2.D2_CLIENTE = '" + cCodCli + "' "
 	cQueryX += "	AND D2.D2_LOJA = '" + cLoja + "'"
+	if cPrdG != "1" // todos
+		if cPrdG == "2" // CRF
+			cQueryX += "	AND B1.B1_GRUPO IN('2', '21', '2101') "
+		elseIf cPrdG == "3" // Specialties
+			cQueryX += "	AND B1.B1_GRUPO IN('1') "
+		elseIf cPrdG == "4" // Biologics/BioControl
+			cQueryX += "	AND B1.B1_GRUPO IN('3', '32') "
+		endIf
+	endIf
 	cQueryX += "	AND D2.D_E_L_E_T_ = '' "
 	cQueryX += "ORDER BY "
 	cQueryX += "	ITEM "
+
+	if cMostraD2
+		ShowLog(cQueryX)
+	endIf
 
 	If Select(cAliasD2) > 0
 		DbSelectArea(cAliasD2)
@@ -528,6 +584,10 @@ static function montaE1()
 	cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
 
 	cQuery1 := montaQueryE1(cFil, cListaClientes, cSit, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
+	if MsgYesNo("Mostrar Query E1", "UFINR85.PRW")
+		ShowLog(cQuery1)
+		return
+	endIf
 	If Select(cAliasE1) > 0
 		DbSelectArea(cAliasE1)
 		(cAliasE1)->(dbCloseArea())
@@ -571,6 +631,12 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 		endIf
 		cWhere1 += "		AND E1.E1_VENCREA BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' "
 		cWhere1 += "		AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' "
+		if !empty(cSafra)
+			cWhere1 += "		AND E1.E1_USAFRA = '" + cSafra + "' "
+		endIf
+		if !empty(cCultura)
+			cWhere1 += "		AND E1.E1_UCULTUR = '" + cCultura + "' "
+		endIf
 	#ENDIF
 	cWhere1 += "		AND E1.E1_SALDO <> 0 "
 	cWhere1 += "		AND E1.D_E_L_E_T_ = '' "
@@ -719,8 +785,6 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += cWhere1
 	cQueryX += "	) E1_EXT "
 	cQueryX += cOrder1
-
-	ShowLog(cQueryX)
 
 return cQueryX
 
