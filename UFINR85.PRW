@@ -3,7 +3,7 @@
 #INCLUDE "TOPCONN.ch"
 
 #DEFINE SQL_ORACLE // Usado quando for rodar na base do Cliente
-#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
+//#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
 /*/{Protheus.doc} FINR85
 	Funcao que gera relatorios de titulos com dados do faturamento
@@ -107,7 +107,7 @@ return
 
 /*/{Protheus.doc} fReportDef
 	Funcao que gera o objeto do tipo TReport
-	@type  Static Function
+	@type Function
 	@author Julio Carvalho Barberino
 	@since 21/08/2025
 	@version 0
@@ -206,7 +206,7 @@ return oReport
 
 /*/{Protheus.doc} fGoPrint
 	Funcao que é chamada no momento da impressão.
-	@type  static function
+	@type Function
 	@author Julio Carvalho Barberino
 	@since 21/08/2025
 	@version 0
@@ -272,7 +272,7 @@ return
 
 /*/{Protheus.doc} printE5
 	Funcao que imprime a Section com dados do financeiro, dados da tabela SE5
-	@type static function
+	@type Function
 	@author Julio Carvalho Barberino
 	@since 21/08/2025
 	@version 0
@@ -302,7 +302,7 @@ return
 
 /*/{Protheus.doc} montaE5
 	Funcao que monta o cAliasE5
-	@type static function
+	@type Function
 	@author Julio Carvalho Barberino
 	@since 21/08/2025
 	@version 0
@@ -341,7 +341,7 @@ static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja)
 	cQueryX += "	AND E5.E5_LOJA = '" + cLoja + "' "
 	cQueryX += "	AND E5.D_E_L_E_T_ = '' "
 	cQueryX += "ORDER BY "
-	cQueryX += "	DATA_MOV; "
+	cQueryX += "	DATA_MOV "
 
 	If Select(cAliasE5) > 0
 		DbSelectArea(cAliasE5)
@@ -354,7 +354,7 @@ return
 
 /*/{Protheus.doc} printD2
 	Funcao que imprime a Section com dados do faturamento, dados da tabela SD2
-	@type  Static Function
+	@type Function
 	@author Julio Carvalho Barberino
 	@since 21/08/2025
 	@version 0
@@ -382,7 +382,7 @@ return
 
 /*/{Protheus.doc} montaD2
 	Funcao que monta o cAliasD2
-	@type Static Function
+	@type Function
 	@author Julio Carvalho Barberino
 	@since 21/08/2025
 	@version 0
@@ -421,7 +421,7 @@ static function montaD2(cFil, cDoc, cCodCli, cLoja)
 	cQueryX += "	AND D2.D2_LOJA = '" + cLoja + "'"
 	cQueryX += "	AND D2.D_E_L_E_T_ = '' "
 	cQueryX += "ORDER BY "
-	cQueryX += "	ITEM; "
+	cQueryX += "	ITEM "
 
 	If Select(cAliasD2) > 0
 		DbSelectArea(cAliasD2)
@@ -432,7 +432,7 @@ return
 
 /*/{Protheus.doc} montaE1
 	Funcao que monta o cAliasE1
-	@type Static Function
+	@type Function
 	@author Julio Carvalho Barberino
 	@since 21/08/2025
 	@version 0
@@ -453,6 +453,95 @@ static function montaE1()
 	EndIf
 	dbUseArea(.T., "TOPCONN", TCGenQry(,,ChangeQuery(cQuery1)), cAliasE1, .F., .T.)
 	dbSelectArea(cAliasE1)
+	
+	/*
+	BeginSql alias cAliasE1
+		SELECT
+			E1_EXT.E1_REC,
+			E1_EXT.FILIAL,
+			E1_EXT.CLI_COD,
+			E1_EXT.LOJA,
+			E1_EXT.CLI_NOME,
+			E1_EXT.PREFIXO,
+			E1_EXT.DOCUMENTO,
+			E1_EXT.PARCELA,
+			E1_EXT.TIPO,
+			E1_EXT.NATUREZA,
+			E1_EXT.EMISSAO,
+			E1_EXT.VENCIMENTO,
+			E1_EXT.VENC_REAL,
+			E1_EXT.BANCO,
+			E1_EXT.ST,
+			E1_EXT.CONTRATO,
+			E1_EXT.VL_ORIG,
+			E1_EXT.TX_JUROS,
+			E1_EXT.ATRASO,
+			E1_EXT.SALDO,
+			E1_EXT.NUMBCO,
+			E1_EXT.ULTIMA_BAIXA,
+			E1_EXT.VEND_COD,
+			E1_EXT.VEND_NOME,
+			E1_EXT.VEND_REGI,
+			E1_EXT.VEND_GER,
+			CASE
+				WHEN ATRASO > 0 THEN SALDO ELSE 0
+			END AS VL_VENCIDO,
+			CASE
+				WHEN ATRASO > 0 THEN ROUND(SALDO * (TX_JUROS / 100) * (ATRASO / 30.5), 2) + SALDO ELSE 0
+			END AS VL_CORRIG,
+			CASE
+				WHEN ATRASO > 0 THEN ROUND(SALDO * (TX_JUROS / 100) * (ATRASO / 30.5), 2) ELSE 0
+			END AS VL_JUROS
+		FROM
+			(
+			SELECT
+				E1.R_E_C_N_O_ AS E1_REC,
+				E1.E1_FILORIG AS FILIAL,
+				A1.A1_COD AS CLI_COD,
+				A1.A1_LOJA AS LOJA,
+				A1.A1_NOME AS CLI_NOME,
+				E1.E1_PREFIXO AS PREFIXO,
+				E1.E1_NUM AS DOCUMENTO,
+				E1.E1_PARCELA AS PARCELA,
+				E1.E1_TIPO AS TIPO,
+				E1.E1_NATUREZ AS NATUREZA,
+				SUBSTR(E1.E1_EMISSAO, 7, 2) || '/' || SUBSTR(E1.E1_EMISSAO, 5, 2) || '/' || SUBSTR(E1.E1_EMISSAO, 1, 4) AS EMISSAO,
+				SUBSTR(E1.E1_VENCTO, 7, 2) || '/' || SUBSTR(E1.E1_VENCTO, 5, 2) || '/' || SUBSTR(E1.E1_VENCTO, 1, 4) AS VENCIMENTO,
+				SUBSTR(E1.E1_VENCREA, 7, 2) || '/' || SUBSTR(E1.E1_VENCREA, 5, 2) || '/' || SUBSTR(E1.E1_VENCREA, 1, 4) AS VENC_REAL,
+				E1_NUMBCO AS BANCO,
+				E1.E1_SITUACA AS ST,
+				E1.E1_CONTRAT AS CONTRATO,
+				E1.E1_VALOR AS VL_ORIG,
+				1.5 AS TX_JUROS,
+				TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO,
+				E1.E1_SALDO AS SALDO,
+				E1.E1_NUMBCO AS NUMBCO,
+				E1.E1_BAIXA AS ULTIMA_BAIXA,
+				A3.A3_COD AS VEND_COD,
+				A3.A3_NOME AS VEND_NOME,
+				A3.A3_REGIAO AS VEND_REGI,
+				A3.A3_GEREN AS VEND_GER
+			FROM
+				%Table:SE1% E1
+				INNER JOIN
+					%Table:SA1% A1
+					ON E1.E1_CLIENTE = A1.A1_COD
+					AND E1.E1_LOJA = A1.A1_LOJA
+					AND A1.D_E_L_E_T_ = ''
+				LEFT JOIN
+					%Table:SA3% A3
+					ON E1.E1_VEND1 = A3.A3_COD
+					AND A3.D_E_L_E_T_ = ''
+			WHERE
+				E1.E1_TIPO = 'NF'
+				AND E1.E1_SALDO <> 0
+				AND E1.D_E_L_E_T_ = ''
+			) E1_EXT
+		ORDER BY
+			CLI_NOME, LOJA, DOCUMENTO, PARCELA
+	EndSql
+	*/
+
 	If (cAliasE1)->(Eof())
 		msgAlert("Nao existem dados no alias " + cAliasE1, "UFINR85.PRW")
 	endIf
@@ -460,7 +549,7 @@ return
 
 /*/{Protheus.doc} montaQueryE1
 	Funcao que monta a query que será usada para montar o cAliasE1
-	@type  Static Function
+	@type Function
 	@author Julio Carvalho Barberino
 	@since 21/08/2025
 	@version 0
@@ -482,7 +571,7 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	#IFNDEF SEM_PARAMETROS
 		cWhere1 += "			AND E1.E1_FILORIG IN (" + cFil + ") "
 		cWhere1 += "			AND E1.E1_CLIENTE || '-' || E1.E1_LOJA IN (" + cListaClientes + ") "
-		cWhere1 += "			AND E1.E1_SITUACA IN (" + cListaSituacoes + ") ".
+		cWhere1 += "			AND E1.E1_SITUACA IN (" + cListaSituacoes + ") "
 		cWhere1 += "			AND E1.E1_VENCTO BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' "
 		cWhere1 += "			AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' "
 	#ENDIF
@@ -491,28 +580,28 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 
 	cOrder1 += "ORDER BY "
 	if cTipG == "1"
-		cOrder1 += "	CLI_NOME, LOJA, DOCUMENTO, PARCELA; "
+		cOrder1 += "	CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 	elseIf cTipG == "2"
-		cOrder1 += "	VENCIMENTO, CLI_NOME, LOJA, DOCUMENTO, PARCELA; "
+		cOrder1 += "	VENCIMENTO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 	elseIf cTipG == "3"
-		cOrder1 += "	EMISSAO, CLI_NOME, LOJA, DOCUMENTO, PARCELA; "
+		cOrder1 += "	EMISSAO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 	elseIf cTipG == "10"
-		cOrder1 += "	BANCO, CLI_NOME, LOJA, DOCUMENTO, PARCELA; "
+		cOrder1 += "	BANCO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 	elseIf cTipG == "11"
-		cOrder1 += "	CONTRATO, CLI_NOME, LOJA, DOCUMENTO, PARCELA; "
+		cOrder1 += "	CONTRATO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 	elseIf cTipG == "12"
-		cOrder1 += "	VEND_GER, CLI_NOME, LOJA, DOCUMENTO, PARCELA; "
+		cOrder1 += "	VEND_GER, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 	elseIf cTipG == "13"
-		cOrder1 += "	VEND_REGI, CLI_NOME, LOJA, DOCUMENTO, PARCELA; "
+		cOrder1 += "	VEND_REGI, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 	elseIf cTipG == "14"
-		cOrder1 += "	VEND_NOME, CLI_NOME, LOJA, DOCUMENTO, PARCELA; "
+		cOrder1 += "	VEND_NOME, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 	else
 		msgAlert("falha no tipo de agrupamento", "UFINR85.PRW")
-		cOrder1 += "	CLI_NOME, LOJA, DOCUMENTO, PARCELA; "
+		cOrder1 += "	CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 		return
 	endIf
 
-	cQueryX += "SELECT "
+	cQueryX += "SELECT TOP 1000"
 	cQueryX += "	E1_EXT.E1_REC, "
 	cQueryX += "	E1_EXT.FILIAL, "
 	cQueryX += "	E1_EXT.CLI_COD, "
@@ -577,7 +666,7 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 		cQueryX += "			DAY, "
 		cQueryX += "			SUBSTRING(E1.E1_VENCREA, 1, 4) || '/' || SUBSTRING(E1.E1_VENCREA, 5, 2) || '/' || SUBSTRING(E1.E1_VENCREA, 7, 2), "
 		cQueryX += "			GETDATE() "
-		cQueryX += "		) AS ATRASO, "		
+		cQueryX += "		) AS ATRASO, "
 	#ENDIF
 	cQueryX += "		E1.E1_SALDO AS SALDO, "
 	cQueryX += "		E1.E1_NUMBCO AS NUMBCO, "
