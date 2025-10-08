@@ -3,7 +3,7 @@
 #INCLUDE "TOPCONN.ch"
 
 #DEFINE NOME_DO_FONTE "UFINR85.PRW"
-//#DEFINE MOSTRA_QUERY
+#DEFINE MOSTRA_QUERY
 //#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
 /*/{Protheus.doc} FINR85
@@ -35,10 +35,12 @@ user function FINR85()
 	private nJur		:= 0
 	private cJur		:= ""
 	private nMulta		:= 0
+	private cAouD		:= "1"
 	private cMulta		:= ""
 	private cZeraJurSN	:= "2"
 	private cTipG		:= "1"
 	private cTipPer		:= "1"
+	private nPerAD		:= 0
 	private cPrdG		:= "1"
 	private cTipHier	:= "1"
 	private aFil		:= {}
@@ -68,8 +70,10 @@ user function FINR85()
 	aadd(aPergs, {2, "Selecionar clientes especificos",				cCliSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {2, "Zerar taxas e multas",						cZeraJurSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {2, "Taxas de juros padrão",						cJurPadSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	aadd(aPergs, {1, "TxJurosMensal",								nJur,			"@E 999.99",	".T.",	"",	".T.",	80,	.F.})
+	aadd(aPergs, {1, "TxJurosDiário",								nJur,			"@E 99.999999",	".T.",	"",	".T.",	80,	.F.})
 	aadd(aPergs, {1, "Multa",										nMulta,			"@E 99,999.99",	".T.",	"",	".T.",	80,	.F.})
+	aadd(aPergs, {2, "Antecipação/Desconto",						cAouD,			{"1=Não aplicar", "2=Antecipação", "3=Desconto"},	80, ".T.", .F.})
+	aadd(aPergs, {1, "Percentual Antecipação/Desconto",				nPerAD,			"@E 999.99",	".T.",	"",	".T.",	80,	.F.})
 	aadd(aPergs, {2, "Grupo de produto",							cPrdG,		;
 		{;
 		"1=Todos", ;
@@ -95,9 +99,11 @@ user function FINR85()
 		cJurPadSN	:= MV_PAR09
 		nJur		:= MV_PAR10
 		nMulta		:= MV_PAR11
-		cPrdG		:= MV_PAR12
-		cSafra		:= MV_PAR13
-		cCultura	:= MV_PAR14
+		cAouD		:= MV_PAR12
+		nPerAD		:= MV_PAR13
+		cPrdG		:= MV_PAR14
+		cSafra		:= MV_PAR15
+		cCultura	:= MV_PAR16
 	EndIf
 
 	cFil := ""
@@ -204,6 +210,19 @@ user function FINR85()
 			cJur := Str(nJur, 0, 2)
 			cMulta := Str(nMulta, 0, 2)
 		endIf
+	endIf
+
+	if cAouD == "1" // sem antecipacao e sem desconto
+		nAntecipcao := 0
+		nDesconto := 0
+	elseIf cAouD == "2" // antecipacao
+		nAntecipcao := nPerAD
+		nDesconto := 0
+	elseIf cAouD == "3" // desconto
+		nAntecipcao := 0
+		nDesconto := nPerAD
+	else
+		msgAlert("Não foi definido status do campo Antcipação/Desconto. Encerrar", NOME_DO_FONTE)
 	endIf
 
 	montaE1()
@@ -768,7 +787,9 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 	cQueryX += "		WHEN E1_EXT.ATRASO > 0 THEN E1_EXT.SALDO ELSE 0 " + CRLF
 	cQueryX += "	END AS VL_VENCIDO, " + CRLF
 	cQueryX += "	CASE " + CRLF
-	cQueryX += "		WHEN E1_EXT.ATRASO > 0 THEN ROUND(E1_EXT.SALDO * (E1_EXT.TX_JUROS / 100) * (E1_EXT.ATRASO / 30.5), 2) + E1_EXT.MULTA + E1_EXT.SALDO ELSE 0 " + CRLF
+	cQueryX += "		WHEN E1_EXT.ATRASO > 0  " + CRLF
+	cQueryX += "		THEN ROUND(E1_EXT.SALDO * (1 + (E1_EXT.TX_JUROS * E1_EXT.ATRASO + E1_EXT.MULTA) / 100) * (1 - " + cValToChar(nDesconto) + " / 100), 2) " + CRLF
+	cQueryX += "		ELSE ROUND(E1_EXT.SALDO * (1 - " + cValToChar(nAntecipcao) + " / 100) * (1 - " + cValToChar(nDesconto) + " / 100), 2) " + CRLF
 	cQueryX += "	END AS VL_CORRIG, " + CRLF
 	cQueryX += "	CASE " + CRLF
 	cQueryX += "		WHEN E1_EXT.ATRASO > 0 THEN ROUND(E1_EXT.SALDO * (E1_EXT.TX_JUROS / 100) * (E1_EXT.ATRASO / 30.5), 2) ELSE 0 " + CRLF
