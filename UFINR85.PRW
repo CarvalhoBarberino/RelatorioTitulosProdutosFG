@@ -3,7 +3,7 @@
 #INCLUDE "TOPCONN.ch"
 
 #DEFINE SQL_ORACLE // Usado quando for rodar na base do Cliente
-#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
+//#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
 /*/{Protheus.doc} FINR85
 	Funcao que gera relatorios de titulos com dados do faturamento
@@ -33,6 +33,7 @@ user function FINR85()
 	private cMulta		:= ""
 	private cZeraJurSN	:= "2"
 	private cTipG		:= "1"
+	private cTipPer		:= "1"
 	private cPrdG		:= "1"
 
 	aadd(aPergs, {2, "Selecionar filiais especificas?",				cFilSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
@@ -47,17 +48,20 @@ user function FINR85()
 		"1=Cliente", ;
 		"2=Dt.Venc", ;
 		"3=Dt.Emissao", ;
-		"4=Diário", ;
-		"5=Semanal", ;
-		"6=Quinzenal", ;
-		"7=Mensal", ;
-		"8=Semestral", ;
-		"9=Anual", ;
 		"10=Banco", ;
 		"11=Contrato", ;
 		"12=Hierarquia Com. Diretoria", ;
 		"13=Hierarquia Com. Regional", ;
 		"14=Hierarquia Com. Vendedor", ;
+		},					120, ".T.", .F.})
+	aadd(aPergs, {2, "Tipo de Periodo da data?",					cTipPer,		;
+		{;
+		"1=Diário", ;
+		"2=Semanal", ;
+		"3=Quinzenal", ;
+		"4=Mensal", ;
+		"5=Semestral", ;
+		"6=Anual", ;
 		},					120, ".T.", .F.})
 	aadd(aPergs, {2, "Grupo de produto?",						cPrdG,		;
 		{;
@@ -445,8 +449,12 @@ static function montaE1()
 	cFil := "'FG01', 'FG02'"
 	cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
 	cListaSituacoes := "'0', '1', '2', '3', '4', '5', '6', '7', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'"
-
-	cQuery1 := montaQueryE1(cFil, cListaClientes, cListaSituacoes)
+	cDtVenc0 := '20250101'
+	cDtVenc1 := '20250805'
+	cDtEmis0 := '20250101'
+	cDtEmis1 := '20250805'
+	
+	cQuery1 := montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
 	If Select(cAliasE1) > 0
 		DbSelectArea(cAliasE1)
 		(cAliasE1)->(dbCloseArea())
@@ -478,17 +486,17 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	local cWhere1	:= ""
 	local cOrder1	:= ""
 
-	cWhere1 += "WHERE "
-	cWhere1 += "	E1.E1_TIPO = 'NF' "
+	cWhere1 += "	WHERE "
+	cWhere1 += "		E1.E1_TIPO = 'NF' "
 	#IFNDEF SEM_PARAMETROS
-		cWhere1 += "			AND E1.E1_FILORIG IN (" + cFil + ") "
-		cWhere1 += "			AND E1.E1_CLIENTE || '-' || E1.E1_LOJA IN (" + cListaClientes + ") "
-		cWhere1 += "			AND E1.E1_SITUACA IN (" + cListaSituacoes + ") "
-		cWhere1 += "			AND E1.E1_VENCTO BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' "
-		cWhere1 += "			AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' "
+		cWhere1 += "		AND E1.E1_FILORIG IN (" + cFil + ") "
+		cWhere1 += "		AND E1.E1_CLIENTE || '-' || E1.E1_LOJA IN (" + cListaClientes + ") "
+		cWhere1 += "		AND E1.E1_SITUACA IN (" + cListaSituacoes + ") "
+		cWhere1 += "		AND E1.E1_VENCTO BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' "
+		cWhere1 += "		AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' "
 	#ENDIF
-	cWhere1 += "			AND E1.E1_SALDO <> 0 "
-	cWhere1 += "			AND E1.D_E_L_E_T_ = '' "
+	cWhere1 += "		AND E1.E1_SALDO <> 0 "
+	cWhere1 += "		AND E1.D_E_L_E_T_ = '' "
 
 	cOrder1 += "ORDER BY "
 	if cTipG == "1"
@@ -532,7 +540,10 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += "	E1_EXT.CONTRATO, "
 	cQueryX += "	E1_EXT.VL_ORIG, "
 	cQueryX += "	E1_EXT.TX_JUROS, "
+	cQueryX += "	E1_EXT.MULTA, "
 	cQueryX += "	E1_EXT.ATRASO, "
+	cQueryX += "	E1_EXT.WEMISSAO, "
+	cQueryX += "	E1_EXT.WVENCTO, "
 	cQueryX += "	E1_EXT.SALDO, "
 	cQueryX += "	E1_EXT.NUMBCO, "
 	cQueryX += "	E1_EXT.ULTIMA_BAIXA, "
@@ -570,8 +581,11 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += "		E1.E1_CONTRAT AS CONTRATO, "
 	cQueryX += "		E1.E1_VALOR AS VL_ORIG, "
 	cQueryX += "		1.5 AS TX_JUROS, "
+	cQueryX += "		E1.E1_VLMULTA AS MULTA, "
 	#IFDEF SQL_ORACLE
 		cQueryX += "		TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO, "
+		cQueryX += "		TRUNC((TO_DATE(E1.E1_EMISSAO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WEMISSAO, "
+		cQueryX += "		TRUNC((TO_DATE(E1.E1_VENCTO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WVENCTO, "
 	#ELSE // Caso seja SQL Server
 		cQueryX += "		DATEDIFF "
 		cQueryX += "		( "
