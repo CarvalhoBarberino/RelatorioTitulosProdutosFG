@@ -187,29 +187,6 @@ user function FINR85()
 		endIf
 	endIf
 
-	If Select(cAliasTot) > 0
-		DbSelectArea(cAliasTot)
-		(cAliasTot)->(dbCloseArea())
-	EndIf
-	dbCreate(cAliasTot, ;
-		{;
-		{"CONTAGEM",	"N", 6, 0}, ;
-		{"VL_ORIG",		"N", 8, 2}, ;
-		{"SALDO",		"N", 8, 2}, ;
-		{"VL_ATUAL",	"N", 8, 2}, ;
-		}, ;
-		"TOPCONN") // https://tdn.totvs.com/display/tec/DBCreate
-	DBUseArea(.F., 'TOPCONN', cAliasTot, (cAliasTot), .F., .F.)
-	(cAliasTot)->(DBAppend(.F.))
-	(cAliasTot)->CONTAGEM := 0
-	(cAliasTot)->VL_ORIG := 0
-	(cAliasTot)->SALDO := 0
-	(cAliasTot)->VL_ATUAL := 0
-	(cAliasTot)->(DBCommit())
-
-	msgAlert("pausa", "UFINR85.PRW")
-
-RETURN
 
 	montaE1()
 
@@ -235,6 +212,7 @@ return
 /*/
 static function fReportDef()
 	local oReport
+	local oSecE1 := Nil
 
 	//Criacao do componente de impressao
 	oReport	:= TReport():New(;
@@ -249,24 +227,22 @@ static function fReportDef()
 	oReport:SetLandscape()
 	//Definicoes da fonte utilizada
 	oReport:SetLineHeight(35)
-	oReport:nFontBody := 9
+	oReport:nFontBody := 8
 
 	//Criando a secao de dados da E1
 	oSecE1	:= TRSection():New(;
 		oReport /*oParent*/, ;
 		"SecaoE1" /*cTitle*/, ;
 		{cAliasE1} /*uTable*/, /*aOrder*/, /*lLoadCells*/, /*lLoadOrder*/, /*uTotalText*/, /*lTotalInLine*/, /*lHeaderPage*/, /*lHeaderBreak*/, /*lPageBreak*/, /*lLineBreak*/, /*nLeftMargin*/, /*lLineStyle*/, /*nColSpace*/, /*lAutoSize*/, /*cCharSeparator*/, /*nLinesBefore*/, /*nCols*/, /*nClrBack*/, /*nClrFore*/, /*nPercentage*/)
+	oSecE1:SetTotalInLine(.F.)
 	if cProdSN == "1"
 		//Criando a secao de dados da D2
-		oSecD2	:= TRSection():New(oReport, "SecaoD2", {cAliasD2}, , , , , , , , , , , , , , , , , , , )
+		oSecD2	:= TRSection():New(oSecE1, "SecaoD2", {cAliasD2}, , , , , , , , , , , , , , , , , , , )
 	endIf
 	if cMovSN == "1"
 		//Criando a secao de dados da E5
-		oSecE5	:= TRSection():New(oReport, "SecaoE5", {cAliasE5}, , , , , , , , , , , , , , , , , , , )
+		oSecE5	:= TRSection():New(oSecE1, "SecaoE5", {cAliasE5}, , , , , , , , , , , , , , , , , , , )
 	endIf
-
-	//Criando secao de totalizador
-	oSecTot := TRSection():New(oReport, "SecaoTotal", {cAliasTot}, , , , , , , , , , , , , , , , , , , )
 
 	//Colunas do relatorio E1
 	TRCell():New(;
@@ -281,7 +257,7 @@ static function fReportDef()
 	TRCell():New(oSecE1, "LOJA", cAliasE1, "Loja", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "CLI_NOME", cAliasE1, "Cliente", , 25, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "PREFIXO", cAliasE1, "Prf", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "DOCUMENTO", cAliasE1, "Doc", , 9, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "DOCUMENTO", cAliasE1, "Doc", , 11, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "PARCELA", cAliasE1, "Parc", , 3, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "TIPO", cAliasE1, "Tp", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "NATUREZA", cAliasE1, "Nature", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
@@ -321,7 +297,11 @@ static function fReportDef()
 		TRCell():New(oSecD2, "UNIDADE", cAliasD2, "Un", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	endIf
 
+	//Quebras do relatorio
+	oBreak := TRBreak():New(oSecE1, oSecE1:Cell("CLI_COD"), {||"Total da QuebraCLI"}, .F.)
 
+	//Totalizadores
+	oFunc:=TRFunction():New(oSecE1:Cell("SALDO"), , "SUM", oBreak, , "@E 9,999,999.00", , .F.)
 
 
 
@@ -347,7 +327,6 @@ static function fGoPrint(oReport)
 
 	//Pegando as secoes do relatorio
 	oSecE1 := oReport:Section(1)
-	oSecD2 := oReport:Section(2)
 
 	Count to nTotal
 	oReport:SetMeter(nTotal)
@@ -370,7 +349,7 @@ static function fGoPrint(oReport)
 			oSecE1:PrintLine()
 			(cAliasE1)->(dbSkip())
 		else // Outro titulo
-			oSecE1:Finish()
+			//oSecE1:Finish()
 			if cMovSN == "1"
 				printE5(cFilialControle, cPrefixControle, cDocumeControle, cParcelControle, cCodCliControle, cLojaControle)
 			endIf
@@ -383,7 +362,7 @@ static function fGoPrint(oReport)
 			cParcelControle		:= (cAliasE1)->PARCELA
 			cCodCliControle 	:= (cAliasE1)->CLI_COD
 			cLojaControle		:= (cAliasE1)->LOJA
-			oSecE1:Init()
+			//oSecE1:Init()
 			DbSelectArea(cAliasE1)
 		end
 	endDo
