@@ -46,12 +46,13 @@ user function FINR85()
 	private cCultura	:= ""
 
 	private cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
-	private cDtVenc0 := Ctod(Space(8))
-	private cDtVenc1 := Ctod(Space(8))
-	private cDtEmis0 := Ctod(Space(8))
-	private cDtEmis1 := Ctod(Space(8))
-	private cMostraE5 := MsgYesNo("Mostrar Query E5", "UFINR85.PRW")
-	private cMostraD2 := MsgYesNo("Mostrar Query D2", "UFINR85.PRW")
+	private cDtVenc0	:= Ctod(Space(8))
+	private cDtVenc1	:= Ctod(Space(8))
+	private cDtEmis0	:= Ctod(Space(8))
+	private cDtEmis1	:= Ctod(Space(8))
+	private cMostraE5	:= MsgYesNo("Mostrar Query E5", "UFINR85.PRW")
+	private cMostraD2	:= MsgYesNo("Mostrar Query D2", "UFINR85.PRW")
+	private cBreak		:= ""
 
 	aAdd(aPergs, {1, "Vencimento de",								cDtVenc0,		"",				"",		"",	"",		50,	.T.})
 	aAdd(aPergs, {1, "Vencimento até",								cDtVenc1,		"",				"",		"",	"",		50,	.T.})
@@ -276,7 +277,17 @@ static function fReportDef()
 	TRCell():New(oSecE1, "VL_JUROS", cAliasE1, "Juro", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "ATRASO", cAliasE1, "Atraso", , 6, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "VL_CORRIG", cAliasE1, "V.Corri", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "VEND_NOME", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	if cBreak $ "VEND_NOME#VEND_GER#VEND_REGI"
+		TRCell():New(oSecE1, "VEND_NOME", cAliasE1, "Vendedor", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
+		TRCell():New(oSecE1, "VEND_GER", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
+		TRCell():New(oSecE1, "VEND_REGI", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	endIf
+	if cBreak == "CONTRATO"
+		TRCell():New(oSecE1, "CONTRATO", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	endIf
+	if cBreak $ "QVENCTO#MVENCTO#SVENCTO#AVENCTO#EMISSAO#WEMISSAO#QEMISSAO#MEMISSAO#SEMISSAO#AEMISSAO"
+		TRCell():New(oSecE1, cBreak, cAliasE1, "Oculto", , 1, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	endIf
 
 	if cMovSN == "1"
 		// Colunas do relatorio E5
@@ -303,7 +314,7 @@ static function fReportDef()
 	endIf
 
 	//Quebras do relatorio
-	oBreak := TRBreak():New(oSecE1, oSecE1:Cell("CLI_COD"), {||"Total da QuebraCLI"}, .F.)
+	oBreak := TRBreak():New(oSecE1, oSecE1:Cell(cBreak), {||"Total da QuebraCLI"}, .F.)
 
 	//Totalizadores
 	oFuncCount	:= TRFunction():New(oSecE1:Cell("CLI_COD"), , "COUNT", oBreak, , "@E 999,999", , .F.)
@@ -629,28 +640,63 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 
 	cOrder1 += "ORDER BY "
 	if cTipG == "1" // por cliente
-		cOrder1 += "	CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+		cBreak := "CLI_COD"
+		cOrder1 += "	CLI_COD, LOJA, DOCUMENTO, PARCELA "
 	elseIf cTipG == "2" // por vencimento
-		cOrder1 += "	VENCIMENTO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+		if cTipPer == "1" // Diário
+			cBreak := "VENC_REAL"
+		elseIf cTipPer == "2" // Semanal
+			cBreak := "WVENCTO"
+		elseIf cTipPer == "3" // Quinzenal
+			cBreak := "QVENCTO"
+		elseIf cTipPer == "4" // Mensal
+			cBreak := "MVENCTO"
+		elseIf cTipPer == "5" // Semestral
+			cBreak := "SVENCTO"
+		elseIf cTipPer == "6" // Anual
+			cBreak := "AVENCTO"
+		endIf
+		cOrder1 += "	E1_VENCREA, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+
 	elseIf cTipG == "3" // por emissao
-		cOrder1 += "	EMISSAO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+		if cTipPer == "1" // Diário
+			cBreak := "EMISSAO"
+		elseIf cTipPer == "2" // Semanal
+			cBreak := "WEMISSAO"
+		elseIf cTipPer == "3" // Quinzenal
+			cBreak := "QEMISSAO"
+		elseIf cTipPer == "4" // Mensal
+			cBreak := "MEMISSAO"
+		elseIf cTipPer == "5" // Semestral
+			cBreak := "SEMISSAO"
+		elseIf cTipPer == "6" // Anual
+			cBreak := "AEMISSAO"
+		endIf
+		cOrder1 += "	E1_EMISSAO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+
 	elseIf cTipG == "4" // por banco
+		cBreak := "BANCO"
 		cOrder1 += "	BANCO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+
 	elseIf cTipG == "5" // por contrato
+		cBreak := "CONTRATO"
 		cOrder1 += "	CONTRATO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+
 	elseIf cTipG == "6" // por hierarquia de vendas
 		if cTipHier == "1" // por diretoria
+			cBreak := "VEND_GER"
 			cOrder1 += "	VEND_GER, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 		elseIf cTipHier == "2" // por regiao
+			cBreak := "VEND_REGI"
 			cOrder1 += "	VEND_REGI, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 		elseIf cTipHier == "3" // por nome de vendedor
+			cBreak := "VEND_NOME"
 			cOrder1 += "	VEND_NOME, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 		else
 			msgAlert("falha no tipo de agrupamento (hierarquia)", "UFINR85.PRW")
 		endif
 	else
 		msgAlert("falha no tipo de agrupamento", "UFINR85.PRW")
-		cOrder1 += "	CLI_NOME, LOJA, DOCUMENTO, PARCELA "
 		return
 	endIf
 
@@ -675,6 +721,8 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += "	E1_EXT.TX_JUROS, "
 	cQueryX += "	E1_EXT.MULTA, "
 	cQueryX += "	E1_EXT.ATRASO, "
+	cQueryX += "	E1_EXT.E1_EMISSAO, "
+	cQueryX += "	E1_EXT.E1_VENCREA, "
 	cQueryX += "	E1_EXT.WEMISSAO, "
 	cQueryX += "	E1_EXT.WVENCTO, "
 	cQueryX += "	E1_EXT.QEMISSAO, "
@@ -724,32 +772,34 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += "		" + cJur + " AS TX_JUROS, "
 	cQueryX += "		" + cMulta + " AS MULTA, "
 	cQueryX += "		TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO, "
+	cQueryX += "		E1.E1_EMISSAO, "
+	cQueryX += "		E1.E1_VENCREA, "
 	cQueryX += "		TRUNC((TO_DATE(E1.E1_EMISSAO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WEMISSAO, "
-	cQueryX += "		TRUNC((TO_DATE(E1.E1_VENCTO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WVENCTO, "
+	cQueryX += "		TRUNC((TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WVENCTO, "
 	cQueryX += "		CASE "
 	cQueryX += "			WHEN SUBSTR(E1.E1_EMISSAO, 7, 2) <= 15 "
 	cQueryX += "			THEN SUBSTR(E1.E1_EMISSAO, 1, 6) || '.1' "
 	cQueryX += "			ELSE SUBSTR(E1.E1_EMISSAO, 1, 6) || '.2' "
 	cQueryX += "		END AS QEMISSAO,  "
 	cQueryX += "		CASE "
-	cQueryX += "			WHEN SUBSTR(E1.E1_VENCTO, 7, 2) <= 15 "
-	cQueryX += "			THEN SUBSTR(E1.E1_VENCTO, 1, 6) || '.1' "
-	cQueryX += "			ELSE SUBSTR(E1.E1_VENCTO, 1, 6) || '.2' "
+	cQueryX += "			WHEN SUBSTR(E1.E1_VENCREA, 7, 2) <= 15 "
+	cQueryX += "			THEN SUBSTR(E1.E1_VENCREA, 1, 6) || '.1' "
+	cQueryX += "			ELSE SUBSTR(E1.E1_VENCREA, 1, 6) || '.2' "
 	cQueryX += "		END AS QVENCTO,  "
 	cQueryX += "		SUBSTR(E1.E1_EMISSAO, 1, 6) AS MEMISSAO,  "
-	cQueryX += "		SUBSTR(E1.E1_VENCTO, 1, 6) AS MVENCTO,  "
+	cQueryX += "		SUBSTR(E1.E1_VENCREA, 1, 6) AS MVENCTO,  "
 	cQueryX += "		CASE "
 	cQueryX += "			WHEN SUBSTR(E1.E1_EMISSAO, 5, 2) <= 6 "
 	cQueryX += "			THEN SUBSTR(E1.E1_EMISSAO, 1, 4) || '.1' "
 	cQueryX += "			ELSE SUBSTR(E1.E1_EMISSAO, 1, 4) || '.2' "
 	cQueryX += "		END AS SEMISSAO,  "
 	cQueryX += "		CASE "
-	cQueryX += "			WHEN SUBSTR(E1.E1_VENCTO, 5, 2) <= 6 "
-	cQueryX += "			THEN SUBSTR(E1.E1_VENCTO, 1, 4) || '.1' "
-	cQueryX += "			ELSE SUBSTR(E1.E1_VENCTO, 1, 4) || '.2' "
+	cQueryX += "			WHEN SUBSTR(E1.E1_VENCREA, 5, 2) <= 6 "
+	cQueryX += "			THEN SUBSTR(E1.E1_VENCREA, 1, 4) || '.1' "
+	cQueryX += "			ELSE SUBSTR(E1.E1_VENCREA, 1, 4) || '.2' "
 	cQueryX += "		END AS SVENCTO, "
 	cQueryX += "		SUBSTR(E1.E1_EMISSAO, 1, 4) AS AEMISSAO, "
-	cQueryX += "		SUBSTR(E1.E1_VENCTO, 1, 4) AS AVENCTO, "
+	cQueryX += "		SUBSTR(E1.E1_VENCREA, 1, 4) AS AVENCTO, "
 	cQueryX += "		E1.E1_SALDO AS SALDO, "
 	cQueryX += "		E1.E1_NUMBCO AS NUMBCO, "
 	cQueryX += "		E1.E1_BAIXA AS ULTIMA_BAIXA, "
