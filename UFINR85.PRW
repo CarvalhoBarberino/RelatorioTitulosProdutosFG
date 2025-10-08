@@ -38,7 +38,7 @@ user function FINR85()
 	private cAouD		:= "1"
 	private cMulta		:= ""
 	private cZeraJurSN	:= "2"
-	private cTipG		:= "1"
+	private aAgrop		:= {"", "", "", "", ""}
 	private cTipPer		:= "1"
 	private nPerAD		:= 0
 	private cPrdG		:= "1"
@@ -59,7 +59,7 @@ user function FINR85()
 		private cMostraE5	:= MsgYesNo("Mostrar Query E5", NOME_DO_FONTE)
 		private cMostraD2	:= MsgYesNo("Mostrar Query D2", NOME_DO_FONTE)
 	#ENDIF
-	private cBreak		:= ""
+	private aBreak		:= {}
 
 	aAdd(aPergs, {1, "Vencimento de",								cDtVenc0,		"",				"",		"",	"",		50,	.T.})
 	aAdd(aPergs, {1, "Vencimento até",								cDtVenc1,		"",				"",		"",	"",		50,	.T.})
@@ -164,8 +164,48 @@ user function FINR85()
 	aPergs := {}
 	aadd(aPergs, {2, "Imprime Produtos ao final de cada título",	cProdSN,		{"1=Sim", "2=Não"},					80, ".T.", .F.})
 	aadd(aPergs, {2, "Mostra informacoes de baixa",					cMovSN,			{"1=Sim", "2=Não"},					80, ".T.", .F.})
-	aadd(aPergs, {2, "Tipo de agrupamento",							cTipG,			;
+	aadd(aPergs, {2, "Agrupamento 1",								aAgrop[1],			;
 		{;
+		"1=Cliente", ;
+		"2=Dt.Venc", ;
+		"3=Dt.Emissao", ;
+		"4=Banco", ;
+		"5=Contrato", ;
+		"6=Hierarquia de Vendas", ;
+		},					120, ".T.", .F.})
+	aadd(aPergs, {2, "Agrupamento 2",								aAgrop[2],			;
+		{;
+		"0=Não Aplicar", ;
+		"1=Cliente", ;
+		"2=Dt.Venc", ;
+		"3=Dt.Emissao", ;
+		"4=Banco", ;
+		"5=Contrato", ;
+		"6=Hierarquia de Vendas", ;
+		},					120, ".T.", .F.})
+	aadd(aPergs, {2, "Agrupamento 3",								aAgrop[3],			;
+		{;
+		"0=Não Aplicar", ;
+		"1=Cliente", ;
+		"2=Dt.Venc", ;
+		"3=Dt.Emissao", ;
+		"4=Banco", ;
+		"5=Contrato", ;
+		"6=Hierarquia de Vendas", ;
+		},					120, ".T.", .F.})
+	aadd(aPergs, {2, "Agrupamento 4",								aAgrop[4],			;
+		{;
+		"0=Não Aplicar", ;
+		"1=Cliente", ;
+		"2=Dt.Venc", ;
+		"3=Dt.Emissao", ;
+		"4=Banco", ;
+		"5=Contrato", ;
+		"6=Hierarquia de Vendas", ;
+		},					120, ".T.", .F.})
+	aadd(aPergs, {2, "Agrupamento 5",								aAgrop[5],			;
+		{;
+		"0=Não Aplicar", ;
 		"1=Cliente", ;
 		"2=Dt.Venc", ;
 		"3=Dt.Emissao", ;
@@ -194,9 +234,13 @@ user function FINR85()
 	else
 		cProdSN		:= MV_PAR01
 		cMovSN		:= MV_PAR02
-		cTipG		:= MV_PAR03
-		cTipPer		:= MV_PAR04
-		cTipHier	:= MV_PAR05
+		aAgrop[1]	:= MV_PAR03
+		aAgrop[2]	:= MV_PAR04
+		aAgrop[3]	:= MV_PAR05
+		aAgrop[4]	:= MV_PAR06
+		aAgrop[5]	:= MV_PAR07
+		cTipPer		:= MV_PAR08
+		cTipHier	:= MV_PAR09
 	EndIf
 
 	if cZeraJurSN == "1"
@@ -247,12 +291,15 @@ return
 	@return oReport, TReport
 /*/
 static function fReportDef()
-	local oReport
+	local nI			:= 0
+	local oReport		:= Nil
 	local oSecE1		:= Nil
-	local oFuncCount	:= Nil
-	local oFuncVOrig	:= Nil
-	local oFuncVAtu		:= Nil
-	local oFuncSaldo	:= Nil
+	local aOBreak		:= {}
+	local aOFuncCount	:= {}
+	local aOFuncVOrig	:= {}
+	local aOFuncVAtu	:= {}
+	local aOFuncSaldo	:= {}
+	local cAux
 
 	//Criacao do componente de impressao
 	oReport	:= TReport():New(;
@@ -312,17 +359,29 @@ static function fReportDef()
 	TRCell():New(oSecE1, "VL_JUROS", cAliasE1, "Juro", "@E 999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "ATRASO", cAliasE1, "Atraso", , 6, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "VL_CORRIG", cAliasE1, "V.Corri", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	if cBreak $ "VEND_NOME#VEND_GER#VEND_REGI"
-		TRCell():New(oSecE1, "VEND_NOME", cAliasE1, "Vendedor", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
-		TRCell():New(oSecE1, "VEND_GER", cAliasE1, "Gerente", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
-		TRCell():New(oSecE1, "VEND_REGI", cAliasE1, "Regional", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	endIf
-	if cBreak == "CONTRATO"
-		TRCell():New(oSecE1, "CONTRATO", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	endIf
-	if cBreak $ "WVENCTO#QVENCTO#MVENCTO#SVENCTO#AVENCTO#EMISSAO#WEMISSAO#QEMISSAO#MEMISSAO#SEMISSAO#AEMISSAO"
-		TRCell():New(oSecE1, cBreak, cAliasE1, "Oculto", , 1, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	endIf
+	for nI := len(aBreak) to 1 step -1
+		if aBreak[nI] $ "VEND_NOME#VEND_GER#VEND_REGI"
+			TRCell():New(oSecE1, "VEND_NOME", cAliasE1, "Vendedor", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
+			TRCell():New(oSecE1, "VEND_GER", cAliasE1, "Gerente", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
+			TRCell():New(oSecE1, "VEND_REGI", cAliasE1, "Regional", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
+		endIf
+		if aBreak[nI] == "CONTRATO"
+			TRCell():New(oSecE1, "CONTRATO", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
+		endIf
+		if aBreak[nI] $ "WVENCTO#QVENCTO#MVENCTO#SVENCTO#AVENCTO#EMISSAO#WEMISSAO#QEMISSAO#MEMISSAO#SEMISSAO#AEMISSAO"
+			TRCell():New(oSecE1, aBreak[nI], cAliasE1, "Oculto", , 1, , , "LEFT" , , "LEFT" , , , , , , .T.)
+		endIf
+		//Quebras do relatorio
+		cAux := aBreak[nI]
+		aAdd(aOBreak, TRBreak():New(oSecE1, oSecE1:Cell(aBreak[nI]), {||"Total por " + cAux}, .F.))
+		//Totalizadores
+		aAdd(aOFuncCount, TRFunction():New(oSecE1:Cell("CLI_COD"), , "COUNT", aOBreak[1 + len(aBreak) - nI], , "@E 999,999", , .F.)) // https://tdn.totvs.com/display/public/framework/TRFunction
+		aAdd(aOFuncVOrig, TRFunction():New(oSecE1:Cell("VL_ORIG"), , "SUM", aOBreak[1 + len(aBreak) - nI], , "@E 9,999,999.99", , .F.))
+		aAdd(aOFuncVAtu, TRFunction():New(oSecE1:Cell("VL_CORRIG"), , "SUM", aOBreak[1 + len(aBreak) - nI], , "@E 9,999,999.99", , .F.))
+		aAdd(aOFuncSaldo, TRFunction():New(oSecE1:Cell("SALDO"), , "SUM", aOBreak[1 + len(aBreak) - nI], , "@E 9,999,999.99", , .F.))
+
+		// juk continuar aqui aAdd(aOFuncSaldo, TRFunction():New(oSecE1:Cell("SALDO"), , , aOBreak[1 + len(aBreak) - nI], aBreak[nI], , , .F.))
+	next
 
 	if cMovSN == "1"
 		// Colunas do relatorio E5
@@ -348,14 +407,7 @@ static function fReportDef()
 		TRCell():New(oSecD2, "UNIDADE", cAliasD2, "Un", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	endIf
 
-	//Quebras do relatorio
-	oBreak := TRBreak():New(oSecE1, oSecE1:Cell(cBreak), {||"Total por " + cBreak}, .F.)
-
-	//Totalizadores
-	oFuncCount	:= TRFunction():New(oSecE1:Cell("CLI_COD"), , "COUNT", oBreak, , "@E 999,999", , .F.)
-	oFuncVOrig	:= TRFunction():New(oSecE1:Cell("VL_ORIG"), , "SUM", oBreak, , "@E 9,999,999.99", , .F.)
-	oFuncVAtu	:= TRFunction():New(oSecE1:Cell("VL_CORRIG"), , "SUM", oBreak, , "@E 9,999,999.99", , .F.)
-	oFuncSaldo	:= TRFunction():New(oSecE1:Cell("SALDO"), , "SUM", oBreak, , "@E 9,999,999.99", , .F.)
+	
 
 return oReport
 
@@ -650,6 +702,8 @@ return
 	@param cDtEmis1, c, data de emissao final do intervalo
 /*/
 static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
+	local nI		:= 0
+	local nJ		:= 0
 	local cQueryX	:= ""
 	local cWhere1	:= ""
 	local cOrder1	:= ""
@@ -679,67 +733,78 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 	cWhere1 += "		AND E1.E1_SALDO <> 0 " + CRLF
 	cWhere1 += "		AND E1.D_E_L_E_T_ = '' " + CRLF
 
-	cOrder1 += "ORDER BY " + CRLF
-	if cTipG == "1" // por cliente
-		cBreak := "CLI_COD"
-		cOrder1 += "	CLI_COD, LOJA, DOCUMENTO, PARCELA " + CRLF
-	elseIf cTipG == "2" // por vencimento
-		if cTipPer == "1" // Diário
-			cBreak := "VENC_REAL"
-		elseIf cTipPer == "2" // Semanal
-			cBreak := "WVENCTO"
-		elseIf cTipPer == "3" // Quinzenal
-			cBreak := "QVENCTO"
-		elseIf cTipPer == "4" // Mensal
-			cBreak := "MVENCTO"
-		elseIf cTipPer == "5" // Semestral
-			cBreak := "SVENCTO"
-		elseIf cTipPer == "6" // Anual
-			cBreak := "AVENCTO"
+	// inicio
+	for nI := 1 to len(aAgrop)
+		for nJ := nI to len(aAgrop)
+			if aAgrop[nI] == aAgrop[nJ] .and. nI < nJ
+				aAgrop[nJ] := "0"
+			endIf
+		next
+	next
+	cOrder1 += "ORDER BY " + CRLF + "	"
+
+	for nI := 1 to len(aAgrop)
+		if aAgrop[nI] == "1"
+			cOrder1 += ", CLI_COD"
+			aAdd(aBreak, "CLI_COD")
+		elseIf aAgrop[nI] == "2" // por vencimento
+			cOrder1 += ", VENC_REAL"
+			if cTipPer == "1" // Diário
+				aAdd(aBreak, "VENC_REAL")
+			elseIf cTipPer == "2" // Semanal
+				aAdd(aBreak, "WVENCTO")
+			elseIf cTipPer == "3" // Quinzenal
+				aAdd(aBreak, "QVENCTO")
+			elseIf cTipPer == "4" // Mensal
+				aAdd(aBreak, "MVENCTO")
+			elseIf cTipPer == "5" // Semestral
+				aAdd(aBreak, "SVENCTO")
+			elseIf cTipPer == "6" // Anual
+				aAdd(aBreak, "AVENCTO")
+			else
+				msgAlert("falha no tipo de agrupamento (tipo de periodo)", NOME_DO_FONTE)
+			endIf
+		elseIf aAgrop[nI] == "3" // por emissao
+			cOrder1 += ", EMISSAO"
+			if cTipPer == "1" // Diário
+				aAdd(aBreak, "EMISSAO")
+			elseIf cTipPer == "2" // Semanal
+				aAdd(aBreak, "WEMISSAO")
+			elseIf cTipPer == "3" // Quinzenal
+				aAdd(aBreak, "QEMISSAO")
+			elseIf cTipPer == "4" // Mensal
+				aAdd(aBreak, "MEMISSAO")
+			elseIf cTipPer == "5" // Semestral
+				aAdd(aBreak, "SEMISSAO")
+			elseIf cTipPer == "6" // Anual
+				aAdd(aBreak, "AEMISSAO")
+			else
+				msgAlert("falha no tipo de agrupamento (tipo de periodo)", NOME_DO_FONTE)
+			endIf
+		elseIf aAgrop[nI] == "4" // por banco
+			cOrder1 += ", BANCO DESC"
+			aAdd(aBreak, "BANCO")
+		elseIf aAgrop[nI] == "5" // por contrato
+			cOrder1 += ", CONTRATO"
+			aAdd(aBreak, "CONTRATO")
+		elseIf aAgrop[nI] == "6" // por hierarquia de vendas
+			if cTipHier == "1" // por diretoria
+				cOrder1 += ", VEND_GER"
+				aAdd(aBreak, "VEND_GER")
+			elseIf cTipHier == "2" // por regiao
+				cOrder1 += ", VEND_REGI"
+				aAdd(aBreak, "VEND_REGI")
+			elseIf cTipHier == "3" // por nome de vendedor
+				cOrder1 += ", VEND_NOME"
+				aAdd(aBreak, "VEND_NOME")
+			else
+				msgAlert("falha no tipo de agrupamento (hierarquia)", NOME_DO_FONTE)
+			endIf
 		endIf
-		cOrder1 += "	E1_VENCREA, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
-
-	elseIf cTipG == "3" // por emissao
-		if cTipPer == "1" // Diário
-			cBreak := "EMISSAO"
-		elseIf cTipPer == "2" // Semanal
-			cBreak := "WEMISSAO"
-		elseIf cTipPer == "3" // Quinzenal
-			cBreak := "QEMISSAO"
-		elseIf cTipPer == "4" // Mensal
-			cBreak := "MEMISSAO"
-		elseIf cTipPer == "5" // Semestral
-			cBreak := "SEMISSAO"
-		elseIf cTipPer == "6" // Anual
-			cBreak := "AEMISSAO"
-		endIf
-		cOrder1 += "	E1_EMISSAO, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
-
-	elseIf cTipG == "4" // por banco
-		cBreak := "BANCO"
-		cOrder1 += "	BANCO DESC, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
-
-	elseIf cTipG == "5" // por contrato
-		cBreak := "CONTRATO"
-		cOrder1 += "	CONTRATO, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
-
-	elseIf cTipG == "6" // por hierarquia de vendas
-		if cTipHier == "1" // por diretoria
-			cBreak := "VEND_GER"
-			cOrder1 += "	VEND_GER, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
-		elseIf cTipHier == "2" // por regiao
-			cBreak := "VEND_REGI"
-			cOrder1 += "	VEND_REGI, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
-		elseIf cTipHier == "3" // por nome de vendedor
-			cBreak := "VEND_NOME"
-			cOrder1 += "	VEND_NOME, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
-		else
-			msgAlert("falha no tipo de agrupamento (hierarquia)", NOME_DO_FONTE)
-		endif
-	else
-		msgAlert("falha no tipo de agrupamento", NOME_DO_FONTE)
-		return
-	endIf
+	next
+	cOrder1 += ", LOJA, DOCUMENTO, PARCELA " + CRLF
+	cOrder1 := StrTran(cOrder1, "	, ", "	", , ) // https://tdn.totvs.com/display/public/framework/StrTran
+	// fim
 
 	cQueryX += "SELECT " + CRLF
 	cQueryX += "	E1_EXT.E1_REC, " + CRLF
@@ -873,4 +938,6 @@ return cQueryX
 	https://terminaldeinformacao.com/2024/02/27/abrindo-uma-tela-para-marcacao-de-registros-com-a-f_opcoes-maratona-advpl-e-tl-261/
 	https://tdn.totvs.com/display/public/framework/FwListBranches
 	https://terminaldeinformacao.com/knowledgebase/parambox/
+	https://tdn.totvs.com/display/public/framework/StrTran
+	https://tdn.totvs.com/display/public/framework/TRFunction
 */
