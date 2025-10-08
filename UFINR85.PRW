@@ -23,7 +23,7 @@ return
 
 static function fReportDef()
 	local oReport
-	local oSection1 := Nil
+	local oSecCli := Nil
 
 	//Criacao do componente de impressao
 	oReport	:= TReport():New(;
@@ -41,17 +41,71 @@ static function fReportDef()
 	oReport:nFontBody := 12
 
 	//Criando a secao de dados
-	oSection1	:= TRSection():New(;
+	oSecCli	:= TRSection():New(;
 		oReport /*oParent*/, ;
 		"Secao_1" /*cTitle*/, ;
 		{cAlias} /*uTable*/, /*aOrder*/, /*lLoadCells*/, /*lLoadOrder*/, /*uTotalText*/, /*lTotalInLine*/, /*lHeaderPage*/, /*lHeaderBreak*/, /*lPageBreak*/, /*lLineBreak*/, /*nLeftMargin*/, /*lLineStyle*/, /*nColSpace*/, /*lAutoSize*/, /*cCharSeparator*/, /*nLinesBefore*/, /*nCols*/, /*nClrBack*/, /*nClrFore*/, /*nPercentage*/)
 
 	//Colunas do relatorio
-	TRCell():New(oSection1, "E1_REC", cAlias, "Recno E1",     /*cPicture*/, 15, /*lPixel*/, /*{|| code-block de impressao }*/, "LEFT", /*lLineBreak*/, "LEFT", /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, .T.)
-	TRCell():New(oSection1, "E5_REC", cAlias, "Recno E5",     /*cPicture*/, 15, /*lPixel*/, /*{|| code-block de impressao }*/, "LEFT", /*lLineBreak*/, "LEFT", /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, .T.)
-	TRCell():New(oSection1, "D2_REC", cAlias, "Recno D2",     /*cPicture*/, 15, /*lPixel*/, /*{|| code-block de impressao }*/, "LEFT", /*lLineBreak*/, "LEFT", /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, .T.)
+	TRCell():New(;
+		oSecCli /*oParent*/, ;
+		"CLI_COD" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Cod-Cli" /*cTitle*/, /*cPicture*/, ;
+		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecCli /*oParent*/, ;
+		"LOJA" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Loja-Cli" /*cTitle*/, /*cPicture*/, ;
+		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecCli /*oParent*/, ;
+		"DOCUMENTO" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Numero" /*cTitle*/, /*cPicture*/, ;
+		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecCli /*oParent*/, ;
+		"PARCELA" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Parc" /*cTitle*/, /*cPicture*/, ;
+		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecCli /*oParent*/, ;
+		"ITEM" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Item" /*cTitle*/, /*cPicture*/, ;
+		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecCli /*oParent*/, ;
+		"DATA_MOV" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"DataMov" /*cTitle*/, /*cPicture*/, ;
+		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
 
-	oBreak := TRBreak():New(oSection1, oSection1:Cell("D2_REC"), {||"Total da Quebra"}, .F.)
+	//Quebras do relatorio
+	oBreak := TRBreak():New(oSecCli, oSecCli:Cell("CLI_COD"), {||"Total da Quebra"}, .F.)
+
+	
 
 return oReport
 
@@ -180,7 +234,7 @@ static function montaQuery(cFil, cListaClientes, cListaSituacoes)
 	cQueryX += "				ON E1.E1_CLIENTE = A1.A1_COD "
 	cQueryX += "				AND E1.E1_LOJA = A1.A1_LOJA "
 	cQueryX += "				AND A1.D_E_L_E_T_ = '' "
-	cQueryX += "			INNER JOIN "
+	cQueryX += "			LEFT JOIN "
 	cQueryX += "				" + RetSqlName("SA3") + " A3 "
 	cQueryX += "				ON E1.E1_VEND1 = A3.A3_COD "
 	cQueryX += "				AND A3.D_E_L_E_T_ = '' "
