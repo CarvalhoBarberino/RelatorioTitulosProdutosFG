@@ -3,7 +3,7 @@
 #INCLUDE "TOPCONN.ch"
 
 #DEFINE NOME_DO_FONTE "UFINR85.PRW"
-#DEFINE MOSTRA_QUERY
+//#DEFINE MOSTRA_QUERY
 //#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
 /*/{Protheus.doc} FINR85
@@ -102,7 +102,7 @@ user function FINR85()
 
 	cFil := ""
 	if cFilSN == "1" // Seleciona filiais
-		aFil := FwListBranches( .T. , .T. , .T. , {'FLAG', 'SM0_CODFIL', 'SM0_NOMRED', 'SM0_CGC', 'SM0_INSC', 'SM0_INSCM'}) // https://tdn.totvs.com/display/public/framework/FwListBranches https://tdn.totvs.com/display/framework/FwListBranches https://tdn.totvs.com/pages/viewpage.action?pageId=427052751
+		aFil := FwListBranches(.T., .T., .T., {'FLAG', 'SM0_CODFIL', 'SM0_NOMRED', 'SM0_CGC', 'SM0_INSC', 'SM0_INSCM'}) // https://tdn.totvs.com/display/public/framework/FwListBranches https://tdn.totvs.com/display/framework/FwListBranches https://tdn.totvs.com/pages/viewpage.action?pageId=427052751
 		if len(aFil) > 0
 			for nI := 1 to len(aFil)
 				if aFil[nI][1]
@@ -115,10 +115,10 @@ user function FINR85()
 			msgAlert("As filiais não foram carregadas. Não ha filtro de filiais", NOME_DO_FONTE)
 		endIf
 	endif
-	
+
 	if cSitSN == "1" // Seleciona situacoes
 		if F_Opcoes(;
-			@aSitu,;	//uVarRet
+				@aSitu,;	//uVarRet
 			"Filtro de tipos de situacoes",;	//cTitulo
 			{"0-CARTEIRA", "1-SIMPLES", "2-DESCONTADA", "3-CAUCIONADA", "4-VINCULADA", "5-COM ADVOGADO", "6-JUDICIAL", "7-CAUÇÃO DESCONTADA", "F-CARTEIRA PROTESTO", "G-CARTEIRA ACORDO", "H-CARTÓRIO", "I-CARTEIRA CAIXA LOJA", "J-CARTEIRA CAIXA GERAL", "K-PIX", "L-PDD", "M-PCLD", "N-CHEQUES DEVOLVIDOS", "O-TESTE"},;		//aOpcoes
 			"01234567FGHIJKLMNO",;		//cOpcoes
@@ -248,7 +248,7 @@ static function fReportDef()
 	oReport:SetLandscape()
 	//Definicoes da fonte utilizada
 	oReport:SetLineHeight(35)
-	oReport:nFontBody := 8
+	oReport:nFontBody := 7
 
 	//Criando a secao de dados da E1
 	oSecE1	:= TRSection():New(;
@@ -274,11 +274,11 @@ static function fReportDef()
 		10 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
 		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
 		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
-		.T. /*lBold*/)
+		.T. /*lBold*/) // https://tdn.totvs.com/display/framework/TRCell
 	TRCell():New(oSecE1, "LOJA", cAliasE1, "Loja", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "CLI_NOME", cAliasE1, "Cliente", , 25, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "PREFIXO", cAliasE1, "Prf", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "DOCUMENTO", cAliasE1, "Doc", , 11, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "DOCUMENTO", cAliasE1, "Doc", , 12, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "PARCELA", cAliasE1, "Parc", , 3, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "TIPO", cAliasE1, "Tp", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "NATUREZA", cAliasE1, "Nature", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
@@ -287,16 +287,16 @@ static function fReportDef()
 	TRCell():New(oSecE1, "VENC_REAL", cAliasE1, "VencReal", , 12, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "BANCO", cAliasE1, "Bco", , 3, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "ST", cAliasE1, "St", , 2, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "VL_ORIG", cAliasE1, "V.Orig", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "SALDO", cAliasE1, "V.Atual", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VL_ORIG", cAliasE1, "V.Orig", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "SALDO", cAliasE1, "V.Atual", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	//TRCell():New(oSecE1, "NUMBCO", cAliasE1, "NumBco", , 16, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "VL_JUROS", cAliasE1, "Juro", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VL_JUROS", cAliasE1, "Juro", "@E 999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "ATRASO", cAliasE1, "Atraso", , 6, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "VL_CORRIG", cAliasE1, "V.Corri", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VL_CORRIG", cAliasE1, "V.Corri", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	if cBreak $ "VEND_NOME#VEND_GER#VEND_REGI"
 		TRCell():New(oSecE1, "VEND_NOME", cAliasE1, "Vendedor", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
-		TRCell():New(oSecE1, "VEND_GER", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
-		TRCell():New(oSecE1, "VEND_REGI", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
+		TRCell():New(oSecE1, "VEND_GER", cAliasE1, "Gerente", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
+		TRCell():New(oSecE1, "VEND_REGI", cAliasE1, "Regional", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	endIf
 	if cBreak == "CONTRATO"
 		TRCell():New(oSecE1, "CONTRATO", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
@@ -334,9 +334,9 @@ static function fReportDef()
 
 	//Totalizadores
 	oFuncCount	:= TRFunction():New(oSecE1:Cell("CLI_COD"), , "COUNT", oBreak, , "@E 999,999", , .F.)
-	oFuncVOrig	:= TRFunction():New(oSecE1:Cell("VL_ORIG"), , "SUM", oBreak, , "@E 9,999,999.00", , .F.)
-	oFuncVAtu	:= TRFunction():New(oSecE1:Cell("VL_CORRIG"), , "SUM", oBreak, , "@E 9,999,999.00", , .F.)
-	oFuncSaldo	:= TRFunction():New(oSecE1:Cell("SALDO"), , "SUM", oBreak, , "@E 9,999,999.00", , .F.)
+	oFuncVOrig	:= TRFunction():New(oSecE1:Cell("VL_ORIG"), , "SUM", oBreak, , "@E 9,999,999.99", , .F.)
+	oFuncVAtu	:= TRFunction():New(oSecE1:Cell("VL_CORRIG"), , "SUM", oBreak, , "@E 9,999,999.99", , .F.)
+	oFuncSaldo	:= TRFunction():New(oSecE1:Cell("SALDO"), , "SUM", oBreak, , "@E 9,999,999.99", , .F.)
 
 return oReport
 
@@ -451,31 +451,31 @@ static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja)
 	local cQueryX	:= ""
 
 	cQueryX += "SELECT " + CRLF
-	cQueryX += "	E5.R_E_C_N_O_ AS E5_REC, "
-	cQueryX += "	E5.E5_PREFIXO AS PREFIXO, "
-	cQueryX += "	E5.E5_NUMERO AS NUMERO, "
-	cQueryX += "	E5.E5_PARCELA AS PARCELA, "
-	cQueryX += "	SUBSTRING(E5.E5_DATA, 7, 2) || '/' || SUBSTRING(E5.E5_DATA, 5, 2) || '/' || SUBSTRING(E5.E5_DATA, 1, 4) AS DATA_MOV, "
-	cQueryX += "	E5.E5_VALOR AS VALOR_MOV, "
-	cQueryX += "	E5.E5_BANCO AS BANCO_MOV, "
-	cQueryX += "	E5.E5_AGENCIA AS AGENCIA_MOV, "
-	cQueryX += "	E5.E5_CONTA AS CONTA_MOV, "
-	cQueryX += "	E5.E5_DOCUMEN AS DOC_MOV, "
-	cQueryX += "	E5.E5_HISTOR AS HISTORICO, "
-	cQueryX += "	E5.E5_MOTBX AS MOTV_BAIXA "
-	cQueryX += "FROM "
-	cQueryX += "	" + RetSqlName("SE5") + " E5"
-	cQueryX += "WHERE "
-	cQueryX += "	E5.E5_FILORIG = '" + cFil + "' "
-	cQueryX += "	AND E5.E5_PREFIXO = '" + cPrefix + "' "
-	cQueryX += "	AND E5.E5_NUMERO = '" + cDoc + "' "
-	cQueryX += "	AND E5.E5_PARCELA = '" + cParcel + "' "
-	cQueryX += "	AND E5.E5_TIPO = 'NF' "
-	cQueryX += "	AND E5.E5_CLIENTE = '" + cCodCli + "' "
-	cQueryX += "	AND E5.E5_LOJA = '" + cLoja + "' "
-	cQueryX += "	AND E5.D_E_L_E_T_ = '' "
-	cQueryX += "ORDER BY "
-	cQueryX += "	DATA_MOV "
+	cQueryX += "	E5.R_E_C_N_O_ AS E5_REC, " + CRLF
+	cQueryX += "	E5.E5_PREFIXO AS PREFIXO, " + CRLF
+	cQueryX += "	E5.E5_NUMERO AS NUMERO, " + CRLF
+	cQueryX += "	E5.E5_PARCELA AS PARCELA, " + CRLF
+	cQueryX += "	SUBSTRING(E5.E5_DATA, 7, 2) || '/' || SUBSTRING(E5.E5_DATA, 5, 2) || '/' || SUBSTRING(E5.E5_DATA, 1, 4) AS DATA_MOV, " + CRLF
+	cQueryX += "	E5.E5_VALOR AS VALOR_MOV, " + CRLF
+	cQueryX += "	E5.E5_BANCO AS BANCO_MOV, " + CRLF
+	cQueryX += "	E5.E5_AGENCIA AS AGENCIA_MOV, " + CRLF
+	cQueryX += "	E5.E5_CONTA AS CONTA_MOV, " + CRLF
+	cQueryX += "	E5.E5_DOCUMEN AS DOC_MOV, " + CRLF
+	cQueryX += "	E5.E5_HISTOR AS HISTORICO, " + CRLF
+	cQueryX += "	E5.E5_MOTBX AS MOTV_BAIXA " + CRLF
+	cQueryX += "FROM " + CRLF
+	cQueryX += "	" + RetSqlName("SE5") + " E5 " + CRLF
+	cQueryX += "WHERE " + CRLF
+	cQueryX += "	E5.E5_FILORIG = '" + cFil + "' " + CRLF
+	cQueryX += "	AND E5.E5_PREFIXO = '" + cPrefix + "' " + CRLF
+	cQueryX += "	AND E5.E5_NUMERO = '" + cDoc + "' " + CRLF
+	cQueryX += "	AND E5.E5_PARCELA = '" + cParcel + "' " + CRLF
+	cQueryX += "	AND E5.E5_TIPO = 'NF' " + CRLF
+	cQueryX += "	AND E5.E5_CLIENTE = '" + cCodCli + "' " + CRLF
+	cQueryX += "	AND E5.E5_LOJA = '" + cLoja + "' " + CRLF
+	cQueryX += "	AND E5.D_E_L_E_T_ = '' " + CRLF
+	cQueryX += "ORDER BY " + CRLF
+	cQueryX += "	DATA_MOV " + CRLF
 
 	#IFDEF MOSTRA_QUERY
 		if cMostraE5
@@ -534,43 +534,43 @@ return
 static function montaD2(cFil, cDoc, cCodCli, cLoja)
 	local cQueryX	:= ""
 
-	cQueryX += "SELECT "
-	cQueryX += "	D2.R_E_C_N_O_ AS D2_REC, "
-	cQueryX += "	D2.D2_FILIAL, "
-	cQueryX += "	D2.D2_CLIENTE, "
-	cQueryX += "	D2.D2_LOJA, "
-	cQueryX += "	D2.D2_SERIE AS SERIE, "
-	cQueryX += "	D2.D2_ITEM AS ITEM, "
-	cQueryX += "	D2.D2_COD AS PROD_COD, "
-	cQueryX += "	B1.B1_DESC AS PROD_DESCRI, "
-	cQueryX += "	D2.D2_QUANT AS QUANTIDADE, "
-	cQueryX += "	D2.D2_UM AS UNIDADE, "
-	cQueryX += "	D2.D2_PRCVEN AS PRC_UNIT, "
-	cQueryX += "	D2.D2_TOTAL AS PRC_ITEM, "
-	cQueryX += "	D2.D2_QUANT * D2.D2_PRCVEN AS MULTIPLI_OK "
-	cQueryX += "FROM "
-	cQueryX += "	" + RetSqlName("SD2") + " D2 "
-	cQueryX += "	INNER JOIN "
-	cQueryX += "		" + RetSqlName("SB1") + " B1 "
-	cQueryX += "		ON D2.D2_COD = B1.B1_COD "
-	cQueryX += "		AND B1.D_E_L_E_T_ = '' "
-	cQueryX += "WHERE "
-	cQueryX += "	D2.D2_DOC = '" + cDoc + "'"
-	cQueryX += "	AND D2.D2_FILIAL = '" + cFil + "' "
-	cQueryX += "	AND D2.D2_CLIENTE = '" + cCodCli + "' "
-	cQueryX += "	AND D2.D2_LOJA = '" + cLoja + "'"
+	cQueryX += "SELECT " + CRLF
+	cQueryX += "	D2.R_E_C_N_O_ AS D2_REC, " + CRLF
+	cQueryX += "	D2.D2_FILIAL, " + CRLF
+	cQueryX += "	D2.D2_CLIENTE, " + CRLF
+	cQueryX += "	D2.D2_LOJA, " + CRLF
+	cQueryX += "	D2.D2_SERIE AS SERIE, " + CRLF
+	cQueryX += "	D2.D2_ITEM AS ITEM, " + CRLF
+	cQueryX += "	D2.D2_COD AS PROD_COD, " + CRLF
+	cQueryX += "	B1.B1_DESC AS PROD_DESCRI, " + CRLF
+	cQueryX += "	D2.D2_QUANT AS QUANTIDADE, " + CRLF
+	cQueryX += "	D2.D2_UM AS UNIDADE, " + CRLF
+	cQueryX += "	D2.D2_PRCVEN AS PRC_UNIT, " + CRLF
+	cQueryX += "	D2.D2_TOTAL AS PRC_ITEM, " + CRLF
+	cQueryX += "	D2.D2_QUANT * D2.D2_PRCVEN AS MULTIPLI_OK " + CRLF
+	cQueryX += "FROM " + CRLF
+	cQueryX += "	" + RetSqlName("SD2") + " D2 " + CRLF
+	cQueryX += "	INNER JOIN " + CRLF
+	cQueryX += "		" + RetSqlName("SB1") + " B1 " + CRLF
+	cQueryX += "		ON D2.D2_COD = B1.B1_COD " + CRLF
+	cQueryX += "		AND B1.D_E_L_E_T_ = '' " + CRLF
+	cQueryX += "WHERE " + CRLF
+	cQueryX += "	D2.D2_DOC = '" + cDoc + "' " + CRLF
+	cQueryX += "	AND D2.D2_FILIAL = '" + cFil + "' " + CRLF
+	cQueryX += "	AND D2.D2_CLIENTE = '" + cCodCli + "' " + CRLF
+	cQueryX += "	AND D2.D2_LOJA = '" + cLoja + "' " + CRLF
 	if cPrdG != "1" // todos
 		if cPrdG == "2" // CRF
-			cQueryX += "	AND B1.B1_GRUPO IN('2', '21', '2101') "
+			cQueryX += "	AND B1.B1_GRUPO IN('2', '21', '2101') " + CRLF
 		elseIf cPrdG == "3" // Specialties
-			cQueryX += "	AND B1.B1_GRUPO IN('1') "
+			cQueryX += "	AND B1.B1_GRUPO IN('1') " + CRLF
 		elseIf cPrdG == "4" // Biologics/BioControl
-			cQueryX += "	AND B1.B1_GRUPO IN('3', '32') "
+			cQueryX += "	AND B1.B1_GRUPO IN('3', '32') " + CRLF
 		endIf
 	endIf
-	cQueryX += "	AND D2.D_E_L_E_T_ = '' "
-	cQueryX += "ORDER BY "
-	cQueryX += "	ITEM "
+	cQueryX += "	AND D2.D_E_L_E_T_ = '' " + CRLF
+	cQueryX += "ORDER BY " + CRLF
+	cQueryX += "	ITEM " + CRLF
 
 	#IFDEF MOSTRA_QUERY
 		if cMostraD2
@@ -635,35 +635,35 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 	local cWhere1	:= ""
 	local cOrder1	:= ""
 
-	cWhere1 += "	WHERE "
-	cWhere1 += "		E1.E1_TIPO = 'NF' "
+	cWhere1 += "	WHERE " + CRLF
+	cWhere1 += "		E1.E1_TIPO = 'NF' " + CRLF
 	#IFNDEF SEM_PARAMETROS
 		if empty(cFil)
 			cFil := "('" + StrTran(xFilial("SE1"), " ", "", , ) + StrTran(fwFilial(), " ", "", , ) + "')"
 		endIf
-		cWhere1 += "		AND E1.E1_FILORIG IN " + cFil + " "
+		cWhere1 += "		AND E1.E1_FILORIG IN " + cFil + " " + CRLF
 		if !empty(cCli)
-			cWhere1 += "		AND A1.R_E_C_N_O_ IN " + cCli + " "
+			cWhere1 += "		AND A1.R_E_C_N_O_ IN " + cCli + " " + CRLF
 		endIf
 		if !empty(cListaSituacoes)
-			cWhere1 += "		AND E1.E1_SITUACA IN " + cListaSituacoes + " "
+			cWhere1 += "		AND E1.E1_SITUACA IN " + cListaSituacoes + " " + CRLF
 		endIf
-		cWhere1 += "		AND E1.E1_VENCREA BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' "
-		cWhere1 += "		AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' "
+		cWhere1 += "		AND E1.E1_VENCREA BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' " + CRLF
+		cWhere1 += "		AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' " + CRLF
 		if !empty(cSafra)
-			cWhere1 += "		AND E1.E1_USAFRA = '" + cSafra + "' "
+			cWhere1 += "		AND E1.E1_USAFRA = '" + cSafra + "' " + CRLF
 		endIf
 		if !empty(cCultura)
-			cWhere1 += "		AND E1.E1_UCULTUR = '" + cCultura + "' "
+			cWhere1 += "		AND E1.E1_UCULTUR = '" + cCultura + "' " + CRLF
 		endIf
 	#ENDIF
-	cWhere1 += "		AND E1.E1_SALDO <> 0 "
-	cWhere1 += "		AND E1.D_E_L_E_T_ = '' "
+	cWhere1 += "		AND E1.E1_SALDO <> 0 " + CRLF
+	cWhere1 += "		AND E1.D_E_L_E_T_ = '' " + CRLF
 
-	cOrder1 += "ORDER BY "
+	cOrder1 += "ORDER BY " + CRLF
 	if cTipG == "1" // por cliente
 		cBreak := "CLI_COD"
-		cOrder1 += "	CLI_COD, LOJA, DOCUMENTO, PARCELA "
+		cOrder1 += "	CLI_COD, LOJA, DOCUMENTO, PARCELA " + CRLF
 	elseIf cTipG == "2" // por vencimento
 		if cTipPer == "1" // Diário
 			cBreak := "VENC_REAL"
@@ -678,7 +678,7 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 		elseIf cTipPer == "6" // Anual
 			cBreak := "AVENCTO"
 		endIf
-		cOrder1 += "	E1_VENCREA, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+		cOrder1 += "	E1_VENCREA, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
 
 	elseIf cTipG == "3" // por emissao
 		if cTipPer == "1" // Diário
@@ -694,26 +694,26 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 		elseIf cTipPer == "6" // Anual
 			cBreak := "AEMISSAO"
 		endIf
-		cOrder1 += "	E1_EMISSAO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+		cOrder1 += "	E1_EMISSAO, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
 
 	elseIf cTipG == "4" // por banco
 		cBreak := "BANCO"
-		cOrder1 += "	BANCO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+		cOrder1 += "	BANCO DESC, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
 
 	elseIf cTipG == "5" // por contrato
 		cBreak := "CONTRATO"
-		cOrder1 += "	CONTRATO, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+		cOrder1 += "	CONTRATO, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
 
 	elseIf cTipG == "6" // por hierarquia de vendas
 		if cTipHier == "1" // por diretoria
 			cBreak := "VEND_GER"
-			cOrder1 += "	VEND_GER, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+			cOrder1 += "	VEND_GER, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
 		elseIf cTipHier == "2" // por regiao
 			cBreak := "VEND_REGI"
-			cOrder1 += "	VEND_REGI, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+			cOrder1 += "	VEND_REGI, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
 		elseIf cTipHier == "3" // por nome de vendedor
 			cBreak := "VEND_NOME"
-			cOrder1 += "	VEND_NOME, CLI_NOME, LOJA, DOCUMENTO, PARCELA "
+			cOrder1 += "	VEND_NOME, CLI_NOME, LOJA, DOCUMENTO, PARCELA " + CRLF
 		else
 			msgAlert("falha no tipo de agrupamento (hierarquia)", NOME_DO_FONTE)
 		endif
@@ -722,126 +722,128 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 		return
 	endIf
 
-	cQueryX += "SELECT "
-	cQueryX += "	E1_EXT.E1_REC, "
-	cQueryX += "	E1_EXT.FILIAL, "
-	cQueryX += "	E1_EXT.CLI_COD, "
-	cQueryX += "	E1_EXT.LOJA, "
-	cQueryX += "	E1_EXT.CLI_NOME, "
-	cQueryX += "	E1_EXT.PREFIXO, "
-	cQueryX += "	E1_EXT.DOCUMENTO, "
-	cQueryX += "	E1_EXT.PARCELA, "
-	cQueryX += "	E1_EXT.TIPO, "
-	cQueryX += "	E1_EXT.NATUREZA, "
-	cQueryX += "	E1_EXT.EMISSAO, "
-	cQueryX += "	E1_EXT.VENCIMENTO, "
-	cQueryX += "	E1_EXT.VENC_REAL, "
-	cQueryX += "	E1_EXT.BANCO, "
-	cQueryX += "	E1_EXT.ST, "
-	cQueryX += "	E1_EXT.CONTRATO, "
-	cQueryX += "	E1_EXT.VL_ORIG, "
-	cQueryX += "	E1_EXT.TX_JUROS, "
-	cQueryX += "	E1_EXT.MULTA, "
-	cQueryX += "	E1_EXT.ATRASO, "
-	cQueryX += "	E1_EXT.E1_EMISSAO, "
-	cQueryX += "	E1_EXT.E1_VENCREA, "
-	cQueryX += "	E1_EXT.WEMISSAO, "
-	cQueryX += "	E1_EXT.WVENCTO, "
-	cQueryX += "	E1_EXT.QEMISSAO, "
-	cQueryX += "	E1_EXT.QVENCTO, "
-	cQueryX += "	E1_EXT.MEMISSAO, "
-	cQueryX += "	E1_EXT.MVENCTO, "
-	cQueryX += "	E1_EXT.SEMISSAO, "
-	cQueryX += "	E1_EXT.SVENCTO, "
-	cQueryX += "	E1_EXT.AEMISSAO, "
-	cQueryX += "	E1_EXT.AVENCTO, "
-	cQueryX += "	E1_EXT.SALDO, "
-	cQueryX += "	E1_EXT.NUMBCO, "
-	cQueryX += "	E1_EXT.ULTIMA_BAIXA, "
-	cQueryX += "	E1_EXT.VEND_COD, "
-	cQueryX += "	E1_EXT.VEND_NOME, "
-	cQueryX += "	E1_EXT.VEND_REGI, "
-	cQueryX += "	E1_EXT.VEND_GER, "
-	cQueryX += "	CASE "
-	cQueryX += "		WHEN ATRASO > 0 THEN SALDO ELSE 0 "
-	cQueryX += "	END AS VL_VENCIDO, "
-	cQueryX += "	CASE "
-	cQueryX += "		WHEN ATRASO > 0 THEN ROUND(SALDO * (TX_JUROS / 100) * (ATRASO / 30.5), 2) + MULTA + SALDO ELSE 0 "
-	cQueryX += "	END AS VL_CORRIG, "
-	cQueryX += "	CASE "
-	cQueryX += "		WHEN ATRASO > 0 THEN ROUND(SALDO * (TX_JUROS / 100) * (ATRASO / 30.5), 2) ELSE 0 "
-	cQueryX += "	END AS VL_JUROS "
-	cQueryX += "FROM "
-	cQueryX += "	( "
-	cQueryX += "	SELECT "
-	cQueryX += "		E1.R_E_C_N_O_ AS E1_REC, "
-	cQueryX += "		E1.E1_FILORIG AS FILIAL, "
-	cQueryX += "		A1.A1_COD AS CLI_COD, "
-	cQueryX += "		A1.A1_LOJA AS LOJA, "
-	cQueryX += "		A1.A1_NOME AS CLI_NOME, "
-	cQueryX += "		E1.E1_PREFIXO AS PREFIXO, "
-	cQueryX += "		E1.E1_NUM AS DOCUMENTO, "
-	cQueryX += "		E1.E1_PARCELA AS PARCELA, "
-	cQueryX += "		E1.E1_TIPO AS TIPO, "
-	cQueryX += "		E1.E1_NATUREZ AS NATUREZA, "
-	cQueryX += "		SUBSTR(E1.E1_EMISSAO, 7, 2) || '/' || SUBSTR(E1.E1_EMISSAO, 5, 2) || '/' || SUBSTR(E1.E1_EMISSAO, 1, 4) AS EMISSAO, "
-	cQueryX += "		SUBSTR(E1.E1_VENCTO, 7, 2) || '/' || SUBSTR(E1.E1_VENCTO, 5, 2) || '/' || SUBSTR(E1.E1_VENCTO, 1, 4) AS VENCIMENTO, "
-	cQueryX += "		SUBSTR(E1.E1_VENCREA, 7, 2) || '/' || SUBSTR(E1.E1_VENCREA, 5, 2) || '/' || SUBSTR(E1.E1_VENCREA, 1, 4) AS VENC_REAL, "
-	cQueryX += "		E1_NUMBCO AS BANCO, "
-	cQueryX += "		E1.E1_SITUACA AS ST, "
-	cQueryX += "		E1.E1_CONTRAT AS CONTRATO, "
-	cQueryX += "		E1.E1_VALOR AS VL_ORIG, "
-	cQueryX += "		" + cJur + " AS TX_JUROS, "
-	cQueryX += "		" + cMulta + " AS MULTA, "
-	cQueryX += "		TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO, "
-	cQueryX += "		E1.E1_EMISSAO, "
-	cQueryX += "		E1.E1_VENCREA, "
-	cQueryX += "		TRUNC((TO_DATE(E1.E1_EMISSAO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WEMISSAO, "
-	cQueryX += "		TRUNC((TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WVENCTO, "
-	cQueryX += "		CASE "
-	cQueryX += "			WHEN SUBSTR(E1.E1_EMISSAO, 7, 2) <= 15 "
-	cQueryX += "			THEN SUBSTR(E1.E1_EMISSAO, 1, 6) || '.1' "
-	cQueryX += "			ELSE SUBSTR(E1.E1_EMISSAO, 1, 6) || '.2' "
-	cQueryX += "		END AS QEMISSAO,  "
-	cQueryX += "		CASE "
-	cQueryX += "			WHEN SUBSTR(E1.E1_VENCREA, 7, 2) <= 15 "
-	cQueryX += "			THEN SUBSTR(E1.E1_VENCREA, 1, 6) || '.1' "
-	cQueryX += "			ELSE SUBSTR(E1.E1_VENCREA, 1, 6) || '.2' "
-	cQueryX += "		END AS QVENCTO,  "
-	cQueryX += "		SUBSTR(E1.E1_EMISSAO, 1, 6) AS MEMISSAO,  "
-	cQueryX += "		SUBSTR(E1.E1_VENCREA, 1, 6) AS MVENCTO,  "
-	cQueryX += "		CASE "
-	cQueryX += "			WHEN SUBSTR(E1.E1_EMISSAO, 5, 2) <= 6 "
-	cQueryX += "			THEN SUBSTR(E1.E1_EMISSAO, 1, 4) || '.1' "
-	cQueryX += "			ELSE SUBSTR(E1.E1_EMISSAO, 1, 4) || '.2' "
-	cQueryX += "		END AS SEMISSAO,  "
-	cQueryX += "		CASE "
-	cQueryX += "			WHEN SUBSTR(E1.E1_VENCREA, 5, 2) <= 6 "
-	cQueryX += "			THEN SUBSTR(E1.E1_VENCREA, 1, 4) || '.1' "
-	cQueryX += "			ELSE SUBSTR(E1.E1_VENCREA, 1, 4) || '.2' "
-	cQueryX += "		END AS SVENCTO, "
-	cQueryX += "		SUBSTR(E1.E1_EMISSAO, 1, 4) AS AEMISSAO, "
-	cQueryX += "		SUBSTR(E1.E1_VENCREA, 1, 4) AS AVENCTO, "
-	cQueryX += "		E1.E1_SALDO AS SALDO, "
-	cQueryX += "		E1.E1_NUMBCO AS NUMBCO, "
-	cQueryX += "		E1.E1_BAIXA AS ULTIMA_BAIXA, "
-	cQueryX += "		A3.A3_COD AS VEND_COD, "
-	cQueryX += "		A3.A3_NOME AS VEND_NOME, "
-	cQueryX += "		A3.A3_REGIAO AS VEND_REGI, "
-	cQueryX += "		A3.A3_GEREN AS VEND_GER "
-	cQueryX += "	FROM "
-	cQueryX += "		" + RetSqlName("SE1") + " E1 "
-	cQueryX += "		INNER JOIN "
-	cQueryX += "			" + RetSqlName("SA1") + " A1 "
-	cQueryX += "			ON E1.E1_CLIENTE = A1.A1_COD "
-	cQueryX += "			AND E1.E1_LOJA = A1.A1_LOJA "
-	cQueryX += "			AND A1.D_E_L_E_T_ = '' "
-	cQueryX += "		LEFT JOIN "
-	cQueryX += "			" + RetSqlName("SA3") + " A3 "
-	cQueryX += "			ON E1.E1_VEND1 = A3.A3_COD "
-	cQueryX += "			AND A3.D_E_L_E_T_ = '' "
+	cQueryX += "SELECT " + CRLF
+	cQueryX += "	E1_EXT.E1_REC, " + CRLF
+	cQueryX += "	E1_EXT.FILIAL, " + CRLF
+	cQueryX += "	E1_EXT.CLI_COD, " + CRLF
+	cQueryX += "	E1_EXT.LOJA, " + CRLF
+	cQueryX += "	E1_EXT.CLI_NOME, " + CRLF
+	cQueryX += "	E1_EXT.PREFIXO, " + CRLF
+	cQueryX += "	E1_EXT.DOCUMENTO, " + CRLF
+	cQueryX += "	E1_EXT.PARCELA, " + CRLF
+	cQueryX += "	E1_EXT.TIPO, " + CRLF
+	cQueryX += "	E1_EXT.NATUREZA, " + CRLF
+	cQueryX += "	E1_EXT.EMISSAO, " + CRLF
+	cQueryX += "	E1_EXT.VENCIMENTO, " + CRLF
+	cQueryX += "	E1_EXT.VENC_REAL, " + CRLF
+	cQueryX += "	E1_EXT.BANCO, " + CRLF
+	cQueryX += "	E1_EXT.ST, " + CRLF
+	cQueryX += "	E1_EXT.CONTRATO, " + CRLF
+	cQueryX += "	E1_EXT.VL_ORIG, " + CRLF
+	cQueryX += "	E1_EXT.TX_JUROS, " + CRLF
+	cQueryX += "	E1_EXT.MULTA, " + CRLF
+	cQueryX += "	CASE " + CRLF
+	cQueryX += "		WHEN E1_EXT.ATRASO > 0 THEN TO_CHAR(E1_EXT.ATRASO) ELSE '' " + CRLF
+	cQueryX += "	END AS ATRASO, " + CRLF
+	cQueryX += "	E1_EXT.E1_EMISSAO, " + CRLF
+	cQueryX += "	E1_EXT.E1_VENCREA, " + CRLF
+	cQueryX += "	E1_EXT.WEMISSAO, " + CRLF
+	cQueryX += "	E1_EXT.WVENCTO, " + CRLF
+	cQueryX += "	E1_EXT.QEMISSAO, " + CRLF
+	cQueryX += "	E1_EXT.QVENCTO, " + CRLF
+	cQueryX += "	E1_EXT.MEMISSAO, " + CRLF
+	cQueryX += "	E1_EXT.MVENCTO, " + CRLF
+	cQueryX += "	E1_EXT.SEMISSAO, " + CRLF
+	cQueryX += "	E1_EXT.SVENCTO, " + CRLF
+	cQueryX += "	E1_EXT.AEMISSAO, " + CRLF
+	cQueryX += "	E1_EXT.AVENCTO, " + CRLF
+	cQueryX += "	E1_EXT.SALDO, " + CRLF
+	cQueryX += "	E1_EXT.NUMBCO, " + CRLF
+	cQueryX += "	E1_EXT.ULTIMA_BAIXA, " + CRLF
+	cQueryX += "	E1_EXT.VEND_COD, " + CRLF
+	cQueryX += "	E1_EXT.VEND_NOME, " + CRLF
+	cQueryX += "	E1_EXT.VEND_REGI, " + CRLF
+	cQueryX += "	E1_EXT.VEND_GER, " + CRLF
+	cQueryX += "	CASE " + CRLF
+	cQueryX += "		WHEN E1_EXT.ATRASO > 0 THEN E1_EXT.SALDO ELSE 0 " + CRLF
+	cQueryX += "	END AS VL_VENCIDO, " + CRLF
+	cQueryX += "	CASE " + CRLF
+	cQueryX += "		WHEN E1_EXT.ATRASO > 0 THEN ROUND(E1_EXT.SALDO * (E1_EXT.TX_JUROS / 100) * (E1_EXT.ATRASO / 30.5), 2) + E1_EXT.MULTA + E1_EXT.SALDO ELSE 0 " + CRLF
+	cQueryX += "	END AS VL_CORRIG, " + CRLF
+	cQueryX += "	CASE " + CRLF
+	cQueryX += "		WHEN E1_EXT.ATRASO > 0 THEN ROUND(E1_EXT.SALDO * (E1_EXT.TX_JUROS / 100) * (E1_EXT.ATRASO / 30.5), 2) ELSE 0 " + CRLF
+	cQueryX += "	END AS VL_JUROS " + CRLF
+	cQueryX += "FROM " + CRLF
+	cQueryX += "	( " + CRLF
+	cQueryX += "	SELECT " + CRLF
+	cQueryX += "		E1.R_E_C_N_O_ AS E1_REC, " + CRLF
+	cQueryX += "		E1.E1_FILORIG AS FILIAL, " + CRLF
+	cQueryX += "		A1.A1_COD AS CLI_COD, " + CRLF
+	cQueryX += "		A1.A1_LOJA AS LOJA, " + CRLF
+	cQueryX += "		A1.A1_NOME AS CLI_NOME, " + CRLF
+	cQueryX += "		E1.E1_PREFIXO AS PREFIXO, " + CRLF
+	cQueryX += "		E1.E1_NUM AS DOCUMENTO, " + CRLF
+	cQueryX += "		E1.E1_PARCELA AS PARCELA, " + CRLF
+	cQueryX += "		E1.E1_TIPO AS TIPO, " + CRLF
+	cQueryX += "		E1.E1_NATUREZ AS NATUREZA, " + CRLF
+	cQueryX += "		SUBSTR(E1.E1_EMISSAO, 7, 2) || '/' || SUBSTR(E1.E1_EMISSAO, 5, 2) || '/' || SUBSTR(E1.E1_EMISSAO, 1, 4) AS EMISSAO, " + CRLF
+	cQueryX += "		SUBSTR(E1.E1_VENCTO, 7, 2) || '/' || SUBSTR(E1.E1_VENCTO, 5, 2) || '/' || SUBSTR(E1.E1_VENCTO, 1, 4) AS VENCIMENTO, " + CRLF
+	cQueryX += "		SUBSTR(E1.E1_VENCREA, 7, 2) || '/' || SUBSTR(E1.E1_VENCREA, 5, 2) || '/' || SUBSTR(E1.E1_VENCREA, 1, 4) AS VENC_REAL, " + CRLF
+	cQueryX += "		E1_PORTADO AS BANCO, " + CRLF
+	cQueryX += "		E1.E1_SITUACA AS ST, " + CRLF
+	cQueryX += "		E1.E1_CONTRAT AS CONTRATO, " + CRLF
+	cQueryX += "		E1.E1_VALOR AS VL_ORIG, " + CRLF
+	cQueryX += "		" + cJur + " AS TX_JUROS, " + CRLF
+	cQueryX += "		" + cMulta + " AS MULTA, " + CRLF
+	cQueryX += "		TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO, " + CRLF
+	cQueryX += "		E1.E1_EMISSAO, " + CRLF
+	cQueryX += "		E1.E1_VENCREA, " + CRLF
+	cQueryX += "		TRUNC((TO_DATE(E1.E1_EMISSAO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WEMISSAO, " + CRLF
+	cQueryX += "		TRUNC((TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WVENCTO, " + CRLF
+	cQueryX += "		CASE " + CRLF
+	cQueryX += "			WHEN SUBSTR(E1.E1_EMISSAO, 7, 2) <= 15 " + CRLF
+	cQueryX += "			THEN SUBSTR(E1.E1_EMISSAO, 1, 6) || '.1' " + CRLF
+	cQueryX += "			ELSE SUBSTR(E1.E1_EMISSAO, 1, 6) || '.2' " + CRLF
+	cQueryX += "		END AS QEMISSAO,  " + CRLF
+	cQueryX += "		CASE " + CRLF
+	cQueryX += "			WHEN SUBSTR(E1.E1_VENCREA, 7, 2) <= 15 " + CRLF
+	cQueryX += "			THEN SUBSTR(E1.E1_VENCREA, 1, 6) || '.1' " + CRLF
+	cQueryX += "			ELSE SUBSTR(E1.E1_VENCREA, 1, 6) || '.2' " + CRLF
+	cQueryX += "		END AS QVENCTO,  " + CRLF
+	cQueryX += "		SUBSTR(E1.E1_EMISSAO, 1, 6) AS MEMISSAO, " + CRLF
+	cQueryX += "		SUBSTR(E1.E1_VENCREA, 1, 6) AS MVENCTO, " + CRLF
+	cQueryX += "		CASE " + CRLF
+	cQueryX += "			WHEN SUBSTR(E1.E1_EMISSAO, 5, 2) <= 6 " + CRLF
+	cQueryX += "			THEN SUBSTR(E1.E1_EMISSAO, 1, 4) || '.1' " + CRLF
+	cQueryX += "			ELSE SUBSTR(E1.E1_EMISSAO, 1, 4) || '.2' " + CRLF
+	cQueryX += "		END AS SEMISSAO,  " + CRLF
+	cQueryX += "		CASE " + CRLF
+	cQueryX += "			WHEN SUBSTR(E1.E1_VENCREA, 5, 2) <= 6 " + CRLF
+	cQueryX += "			THEN SUBSTR(E1.E1_VENCREA, 1, 4) || '.1' " + CRLF
+	cQueryX += "			ELSE SUBSTR(E1.E1_VENCREA, 1, 4) || '.2' " + CRLF
+	cQueryX += "		END AS SVENCTO, " + CRLF
+	cQueryX += "		SUBSTR(E1.E1_EMISSAO, 1, 4) AS AEMISSAO, " + CRLF
+	cQueryX += "		SUBSTR(E1.E1_VENCREA, 1, 4) AS AVENCTO, " + CRLF
+	cQueryX += "		E1.E1_SALDO AS SALDO, " + CRLF
+	cQueryX += "		E1.E1_NUMBCO AS NUMBCO, " + CRLF
+	cQueryX += "		E1.E1_BAIXA AS ULTIMA_BAIXA, " + CRLF
+	cQueryX += "		A3.A3_COD AS VEND_COD, " + CRLF
+	cQueryX += "		A3.A3_NOME AS VEND_NOME, " + CRLF
+	cQueryX += "		A3.A3_REGIAO AS VEND_REGI, " + CRLF
+	cQueryX += "		A3.A3_GEREN AS VEND_GER " + CRLF
+	cQueryX += "	FROM " + CRLF
+	cQueryX += "		" + RetSqlName("SE1") + " E1 " + CRLF
+	cQueryX += "		INNER JOIN " + CRLF
+	cQueryX += "			" + RetSqlName("SA1") + " A1 " + CRLF
+	cQueryX += "			ON E1.E1_CLIENTE = A1.A1_COD " + CRLF
+	cQueryX += "			AND E1.E1_LOJA = A1.A1_LOJA " + CRLF
+	cQueryX += "			AND A1.D_E_L_E_T_ = '' " + CRLF
+	cQueryX += "		LEFT JOIN " + CRLF
+	cQueryX += "			" + RetSqlName("SA3") + " A3 " + CRLF
+	cQueryX += "			ON E1.E1_VEND1 = A3.A3_COD " + CRLF
+	cQueryX += "			AND A3.D_E_L_E_T_ = '' " + CRLF
 	cQueryX += cWhere1
-	cQueryX += "	) E1_EXT "
+	cQueryX += "	) E1_EXT " + CRLF
 	cQueryX += cOrder1
 
 return cQueryX
