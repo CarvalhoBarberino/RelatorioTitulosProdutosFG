@@ -2,6 +2,7 @@
 #INCLUDE "rwmake.ch"
 #INCLUDE "TOPCONN.ch"
 
+#DEFINE SQL_ORACLE // Usado quando for rodar na base do Cliente
 #DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
 /*/{Protheus.doc} FINR85
@@ -94,14 +95,14 @@ user function FINR85()
 		cMulta := Str(nMulta, 0, 2)
 	endIf
 
-	
+
 	montaE1()
 
 	oReport := fReportDef()
 	oReport:PrintDialog()
 
 	(cAliasE1)->(dbCloseArea()) // Fechando o alias cAliasE1
-	restArea(areaPreserv)	
+	restArea(areaPreserv)
 return
 
 /*/{Protheus.doc} fReportDef
@@ -110,10 +111,7 @@ return
 	@author Julio Carvalho Barberino
 	@since 21/08/2025
 	@version 0
-	@return oReport, TReport, 
-	@example
-	(examples)
-	@see (links_or_references)
+	@return oReport, TReport
 /*/
 static function fReportDef()
 	local oReport
@@ -515,7 +513,32 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	endIf
 
 	cQueryX += "SELECT "
-	cQueryX += "	E1.*, "
+	cQueryX += "	E1_EXT.E1_REC, "
+	cQueryX += "	E1_EXT.FILIAL, "
+	cQueryX += "	E1_EXT.CLI_COD, "
+	cQueryX += "	E1_EXT.LOJA, "
+	cQueryX += "	E1_EXT.CLI_NOME, "
+	cQueryX += "	E1_EXT.PREFIXO, "
+	cQueryX += "	E1_EXT.DOCUMENTO, "
+	cQueryX += "	E1_EXT.PARCELA, "
+	cQueryX += "	E1_EXT.TIPO, "
+	cQueryX += "	E1_EXT.NATUREZA, "
+	cQueryX += "	E1_EXT.EMISSAO, "
+	cQueryX += "	E1_EXT.VENCIMENTO, "
+	cQueryX += "	E1_EXT.VENC_REAL, "
+	cQueryX += "	E1_EXT.BANCO, "
+	cQueryX += "	E1_EXT.ST, "
+	cQueryX += "	E1_EXT.CONTRATO, "
+	cQueryX += "	E1_EXT.VL_ORIG, "
+	cQueryX += "	E1_EXT.TX_JUROS, "
+	cQueryX += "	E1_EXT.ATRASO, "
+	cQueryX += "	E1_EXT.SALDO, "
+	cQueryX += "	E1_EXT.NUMBCO, "
+	cQueryX += "	E1_EXT.ULTIMA_BAIXA, "
+	cQueryX += "	E1_EXT.VEND_COD, "
+	cQueryX += "	E1_EXT.VEND_NOME, "
+	cQueryX += "	E1_EXT.VEND_REGI, "
+	cQueryX += "	E1_EXT.VEND_GER, "
 	cQueryX += "	CASE "
 	cQueryX += "		WHEN ATRASO > 0 THEN SALDO ELSE 0 "
 	cQueryX += "	END AS VL_VENCIDO, "
@@ -546,12 +569,16 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += "		E1.E1_CONTRAT AS CONTRATO, "
 	cQueryX += "		E1.E1_VALOR AS VL_ORIG, "
 	cQueryX += "		1.5 AS TX_JUROS, "
-	cQueryX += "		DATEDIFF "
-	cQueryX += "		( "
-	cQueryX += "			DAY, "
-	cQueryX += "			SUBSTRING(E1.E1_VENCREA, 1, 4) || '/' || SUBSTRING(E1.E1_VENCREA, 5, 2) || '/' || SUBSTRING(E1.E1_VENCREA, 7, 2), "
-	cQueryX += "			GETDATE() "
-	cQueryX += "		) AS ATRASO, "
+	#IFDEF SQL_ORACLE
+		cQueryX += "		TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO, "
+	#ELSE // Caso seja SQL Server
+		cQueryX += "		DATEDIFF "
+		cQueryX += "		( "
+		cQueryX += "			DAY, "
+		cQueryX += "			SUBSTRING(E1.E1_VENCREA, 1, 4) || '/' || SUBSTRING(E1.E1_VENCREA, 5, 2) || '/' || SUBSTRING(E1.E1_VENCREA, 7, 2), "
+		cQueryX += "			GETDATE() "
+		cQueryX += "		) AS ATRASO, "		
+	#ENDIF
 	cQueryX += "		E1.E1_SALDO AS SALDO, "
 	cQueryX += "		E1.E1_NUMBCO AS NUMBCO, "
 	cQueryX += "		E1.E1_BAIXA AS ULTIMA_BAIXA, "
@@ -571,7 +598,7 @@ static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cD
 	cQueryX += "			ON E1.E1_VEND1 = A3.A3_COD "
 	cQueryX += "			AND A3.D_E_L_E_T_ = '' "
 	cQueryX += cWhere1
-	cQueryX += "	) E1 "
+	cQueryX += "	) E1_EXT "
 	cQueryX += cOrder1
 
 return cQueryX
