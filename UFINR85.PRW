@@ -9,21 +9,17 @@ user function FINR85()
 
 	private cAlias	:= "UFINR85"
 
-
-
+	montaAlias()
 
 	oReport := fReportDef()
 	oReport:PrintDialog()
-
-
-
 
 	DbCloseArea()
 return
 
 static function fReportDef()
 	local oReport
-	local oSecCli := Nil
+	local oSecE1E5 := Nil
 
 	//Criacao do componente de impressao
 	oReport	:= TReport():New(;
@@ -40,86 +36,302 @@ static function fReportDef()
 	oReport:SetLineHeight(50)
 	oReport:nFontBody := 12
 
-	//Criando a secao de dados
-	oSecCli	:= TRSection():New(;
+	//Criando a secao de dados da E1 e E5
+	oSecE1E5	:= TRSection():New(;
 		oReport /*oParent*/, ;
-		"Secao_1" /*cTitle*/, ;
+		"SecaoE1E5" /*cTitle*/, ;
 		{cAlias} /*uTable*/, /*aOrder*/, /*lLoadCells*/, /*lLoadOrder*/, /*uTotalText*/, /*lTotalInLine*/, /*lHeaderPage*/, /*lHeaderBreak*/, /*lPageBreak*/, /*lLineBreak*/, /*nLeftMargin*/, /*lLineStyle*/, /*nColSpace*/, /*lAutoSize*/, /*cCharSeparator*/, /*nLinesBefore*/, /*nCols*/, /*nClrBack*/, /*nClrFore*/, /*nPercentage*/)
 
-	//Colunas do relatorio
+	//Colunas do relatorio E1E5
 	TRCell():New(;
-		oSecCli /*oParent*/, ;
+		oSecE1E5 /*oParent*/, ;
 		"CLI_COD" /*cName*/, ;
 		cAlias /*cAlias*/, ;
 		"Cod-Cli" /*cTitle*/, /*cPicture*/, ;
-		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		10 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
 		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
 		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
 		.T. /*lBold*/)
 	TRCell():New(;
-		oSecCli /*oParent*/, ;
+		oSecE1E5 /*oParent*/, ;
 		"LOJA" /*cName*/, ;
 		cAlias /*cAlias*/, ;
 		"Loja-Cli" /*cTitle*/, /*cPicture*/, ;
-		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		5 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
 		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
 		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
 		.T. /*lBold*/)
 	TRCell():New(;
-		oSecCli /*oParent*/, ;
+		oSecE1E5 /*oParent*/, ;
+		"CLI_NOME" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Cliente" /*cTitle*/, /*cPicture*/, ;
+		40 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"PREFIXO" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Prf" /*cTitle*/, /*cPicture*/, ;
+		4 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
 		"DOCUMENTO" /*cName*/, ;
 		cAlias /*cAlias*/, ;
-		"Numero" /*cTitle*/, /*cPicture*/, ;
-		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"Documento" /*cTitle*/, /*cPicture*/, ;
+		12 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
 		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
 		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
 		.T. /*lBold*/)
 	TRCell():New(;
-		oSecCli /*oParent*/, ;
+		oSecE1E5 /*oParent*/, ;
 		"PARCELA" /*cName*/, ;
 		cAlias /*cAlias*/, ;
 		"Parc" /*cTitle*/, /*cPicture*/, ;
+		4 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"TIPO" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Tp" /*cTitle*/, /*cPicture*/, ;
+		4 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"NATUREZA" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Natureza" /*cTitle*/, /*cPicture*/, ;
+		11 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"EMISSAO" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Dt Emissao" /*cTitle*/, /*cPicture*/, ;
+		9 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"VENCIMENTO" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Venc" /*cTitle*/, /*cPicture*/, ;
+		9 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"VENC_REAL" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"VencReal" /*cTitle*/, /*cPicture*/, ;
+		9 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"BANCO" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Bco" /*cTitle*/, /*cPicture*/, ;
+		4 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"ST" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"St" /*cTitle*/, /*cPicture*/, ;
+		3 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"VALOR" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Val-Orig" /*cTitle*/, /*cPicture*/, ;
+		10 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"SALDO" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Val-Atual" /*cTitle*/, /*cPicture*/, ;
+		10 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"NUMBCO" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"NumBco" /*cTitle*/, /*cPicture*/, ;
+		16 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"VL_JUROS" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Val-Juros" /*cTitle*/, /*cPicture*/, ;
+		10 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"ATRASO" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Atraso" /*cTitle*/, /*cPicture*/, ;
+		6 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecE1E5 /*oParent*/, ;
+		"HISTORICO" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Historico" /*cTitle*/, /*cPicture*/, ;
 		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
 		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
 		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
 		.T. /*lBold*/)
 	TRCell():New(;
-		oSecCli /*oParent*/, ;
+		oSecE1E5 /*oParent*/, ;
+		"SALDO" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Saldo" /*cTitle*/, /*cPicture*/, ;
+		10 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+
+	//Criando a secao de dados da D2
+	oSecD2	:= TRSection():New(;
+		oReport /*oParent*/, ;
+		"SecaoE1E5" /*cTitle*/, ;
+		{cAlias} /*uTable*/, /*aOrder*/, /*lLoadCells*/, /*lLoadOrder*/, /*uTotalText*/, /*lTotalInLine*/, /*lHeaderPage*/, /*lHeaderBreak*/, /*lPageBreak*/, /*lLineBreak*/, /*nLeftMargin*/, /*lLineStyle*/, /*nColSpace*/, /*lAutoSize*/, /*cCharSeparator*/, /*nLinesBefore*/, /*nCols*/, /*nClrBack*/, /*nClrFore*/, /*nPercentage*/)
+	// Colunas do relatorio D2
+	TRCell():New(;
+		oSecD2 /*oParent*/, ;
 		"ITEM" /*cName*/, ;
 		cAlias /*cAlias*/, ;
 		"Item" /*cTitle*/, /*cPicture*/, ;
-		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		4 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
 		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
 		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
 		.T. /*lBold*/)
 	TRCell():New(;
-		oSecCli /*oParent*/, ;
-		"DATA_MOV" /*cName*/, ;
+		oSecD2 /*oParent*/, ;
+		"PROD_COD" /*cName*/, ;
 		cAlias /*cAlias*/, ;
-		"DataMov" /*cTitle*/, /*cPicture*/, ;
-		15 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"Cod" /*cTitle*/, /*cPicture*/, ;
+		12 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecD2 /*oParent*/, ;
+		"PROD_DESCRI" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Produto" /*cTitle*/, /*cPicture*/, ;
+		40 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecD2 /*oParent*/, ;
+		"QUANTIDADE" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Quant" /*cTitle*/, /*cPicture*/, ;
+		6 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
+		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
+		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
+		.T. /*lBold*/)
+	TRCell():New(;
+		oSecD2 /*oParent*/, ;
+		"UNIDADE" /*cName*/, ;
+		cAlias /*cAlias*/, ;
+		"Un" /*cTitle*/, /*cPicture*/, ;
+		4 /*nSize*/, /*lPixel*/, /*bBlock*/, ;
 		"LEFT" /*cAlign*/, /*lLineBreak*/, ;
 		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
 		.T. /*lBold*/)
 
 	//Quebras do relatorio
-	oBreak := TRBreak():New(oSecCli, oSecCli:Cell("CLI_COD"), {||"Total da Quebra"}, .F.)
+	oBreak := TRBreak():New(oSecE1E5, oSecE1E5:Cell("CLI_COD"), {||"Total da Quebra"}, .F.)
 
-	
+
 
 return oReport
 
 static function fGoPrint(oReport)
-	local cQuery1			:= ""
-	local cFil				:= ""
-	local cListaClientes	:= ""
 	//local cPerg				:= "FIN130"
 	local nAtual			:= 0
 	local nTotal			:= 0
-	local oSectDad
+	local lsecE1E5			:= .T.
+	local oSecE1D5
 
 	//Pegando as secoes do relatorio
-	oSectDad := oReport:Section(1)
+	oSecE1D5 := oReport:Section(1)
+	oSecD2 := oReport:Section(2)
+
+	Count to nTotal
+	oReport:SetMeter(nTotal)
+	oSecE1D5:Init()
+	
+	dbGoTop()
+	// Enquanto houver dados
+	while !(cAlias)->(Eof())
+		nAtual++
+		oReport:SetMsgPrint("Imprimindo registro " + cValToChar(nAtual) + " de " + cValToChar(nTotal) + "...")
+		oReport:IncMeter()
+
+		if (cAlias)->D2_REC = 0 //Imprimindo linha do E1E5
+			if !lsecE1E5
+				lsecE1E5 := .T.
+				oSecE1D5:Init()
+				oSecD2:Finish()
+			endIf
+			oSecE1D5:PrintLine()
+		else //Imprimindo linha do D2
+			if lsecE1E5
+				lsecE1E5 := .F.
+				oSecE1D5:Finish()
+				oSecD2:Init()
+			endIf
+			oSecD2:PrintLine()
+		endIf
+		(cAlias)->(dbSkip())
+	endDo
+
+	oSecE1D5:Finish()
+	(cAlias)->(DbCloseArea())
+
+return
+
+static function montaAlias()
+	local cQuery1			:= ""
+	local cFil				:= ""
+	local cListaClientes	:= ""
 
 	cFil := "'FG01', 'FG02'"
 	cListaClientes := "'084500310-0001', '000516169-0001', '004142810-0001', '103333160-0001', '445932640-0001', '220554560-0001', '204771690-0001', '005189690-0001', '042827500-0001'"
@@ -130,34 +342,12 @@ static function fGoPrint(oReport)
 		DbSelectArea(cAlias)
 		DbCloseArea()
 	EndIf
-	dbUseArea(.T., "TOPCONN", TCGenQry(,,cQuery1), cAlias, .F., .T.)
+	dbUseArea(.T., "TOPCONN", TCGenQry(,,ChangeQuery(cQuery1)), cAlias, .F., .T.)
 	dbSelectArea(cAlias)
 	If (cAlias)->(Eof())
-		msgAlert("Não existem dados no alias " + cAlias, "UFINR85.PRW")
+		msgAlert("Nao existem dados no alias " + cAlias, "UFINR85.PRW")
 		return
 	endIf
-
-	Count to nTotal
-	oReport:SetMeter(nTotal)
-	//Enquanto houver dados
-	oSectDad:Init()
-	dbGoTop()
-	while !(cAlias)->(Eof())
-
-		nAtual++
-		oReport:SetMsgPrint("Imprimindo registro " + cValToChar(nAtual) + " de " + cValToChar(nTotal) + "...")
-		oReport:IncMeter()
-
-		//Imprimindo a linha atual
-		oSectDad:PrintLine()
-
-		(cAlias)->(dbSkip())
-
-	endDo
-
-	oSectDad:Finish()
-	(cAlias)->(DbCloseArea())
-
 return
 
 static function montaQuery(cFil, cListaClientes, cListaSituacoes)
@@ -207,7 +397,11 @@ static function montaQuery(cFil, cListaClientes, cListaSituacoes)
 	cQueryX += "			'' AS VL_VENCIDO, "
 	cQueryX += "			'' AS VL_JUROS, "
 	cQueryX += "			'' AS ATRASO, "
+	cQueryX += "			CASE "
+	cQueryX += "				WHEN E5.R_E_C_N_O_ <> 0 THEN E5.E5_HISTOR ELSE E1.E1_HIST "
+	cQueryX += "			END AS HISTORICO, "
 	cQueryX += "			E1.E1_SALDO AS SALDO, "
+	cQueryX += "			E1.E1_NUMBCO AS NUMBCO, "
 	cQueryX += "			E1.E1_BAIXA AS ULTIMA_BAIXA, "
 	cQueryX += "			E5.E5_DATA AS DATA_MOV, "
 	cQueryX += "			E5.E5_VALOR AS VALOR_MOV, "
@@ -282,7 +476,9 @@ static function montaQuery(cFil, cListaClientes, cListaSituacoes)
 	cQueryX += "			'' AS VL_VENCIDO, "
 	cQueryX += "			'' AS VL_JUROS, "
 	cQueryX += "			'' AS ATRASO, "
+	cQueryX += "			'' AS HISTORICO, "
 	cQueryX += "			0 AS SALDO, "
+	cQueryX += "			'' AS NUMBCO, "
 	cQueryX += "			E1.E1_BAIXA AS ULTIMA_BAIXA, "
 	cQueryX += "			'' AS DATA_MOV, "
 	cQueryX += "			0 AS VALOR_MOV, "
