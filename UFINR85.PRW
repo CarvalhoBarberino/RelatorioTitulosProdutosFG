@@ -48,8 +48,8 @@ user function FINR85()
 	private aSitu		:= {}
 	private cSit		:= ""
 	private cCli		:= ""
-	private cSafra		:= ""
-	private cCultura	:= ""
+	private cSafra		:= "0"
+	private cCultura	:= "     "
 
 	private cDtVenc0	:= Ctod(Space(8))
 	private cDtVenc1	:= Ctod(Space(8))
@@ -81,10 +81,10 @@ user function FINR85()
 		"3=Specialties", ;
 		"4=Biologics/BioControl" ;
 		},					120, ".T.", .F.})
-	aAdd(aPergs, {1, "Safra",										cSafra,			"",				"",		"",	"",		50,	.F.})
-	aAdd(aPergs, {1, "Cultura",										cCultura,		"",				"",		"",	"",		50,	.F.})
+	aadd(aPergs, {2, "Safra",										cSafra,		{"0=Não filtrar", "1=Verao", "2=2ª  Safra", "3=Campanha  Verao", "4=Campanha  2ª  Safra"},					50, ".T.", .F.})
+	aAdd(aPergs, {1, "Cultura",										cCultura,		"",				"",		"NP3",	"",		50,	.F.}) // NP3 - Culturas
 
-	if !ParamBox(aPergs, "Parametros de filtro") // https://terminaldeinformacao.com/knowledgebase/parambox/
+	if !ParamBox(aPergs, "Parametros de filtro") // https://terminaldeinformacao.com/knowledgebase/parambox/ https://www.blacktdn.com.br/2012/05/para-quem-precisar-desenvolver-uma.html https://logostechnology.zendesk.com/hc/pt-br/articles/360048936174-ADVPL-Tipos-e-par%C3%A2metros-da-fun%C3%A7%C3%A3o-ParamBox-em-ADVPL
 		msgAlert("Os parametros não foram carregados", NOME_DO_FONTE)
 		return
 	else
@@ -299,7 +299,6 @@ static function fReportDef()
 	local aOFuncVOrig	:= {}
 	local aOFuncVAtu	:= {}
 	local aOFuncSaldo	:= {}
-	local cAux
 
 	//Criacao do componente de impressao
 	oReport	:= TReport():New(;
@@ -372,15 +371,12 @@ static function fReportDef()
 			TRCell():New(oSecE1, aBreak[nI], cAliasE1, "Oculto", , 1, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		endIf
 		//Quebras do relatorio
-		cAux := aBreak[nI]
-		aAdd(aOBreak, TRBreak():New(oSecE1, oSecE1:Cell(aBreak[nI]), {||"Total por " + cAux}, .F.))
+		aAdd(aOBreak, TRBreak():New(oSecE1, oSecE1:Cell(aBreak[nI]), , .F.))
 		//Totalizadores
 		aAdd(aOFuncCount, TRFunction():New(oSecE1:Cell("CLI_COD"), , "COUNT", aOBreak[1 + len(aBreak) - nI], , "@E 999,999", , .F.)) // https://tdn.totvs.com/display/public/framework/TRFunction
 		aAdd(aOFuncVOrig, TRFunction():New(oSecE1:Cell("VL_ORIG"), , "SUM", aOBreak[1 + len(aBreak) - nI], , "@E 9,999,999.99", , .F.))
 		aAdd(aOFuncVAtu, TRFunction():New(oSecE1:Cell("VL_CORRIG"), , "SUM", aOBreak[1 + len(aBreak) - nI], , "@E 9,999,999.99", , .F.))
 		aAdd(aOFuncSaldo, TRFunction():New(oSecE1:Cell("SALDO"), , "SUM", aOBreak[1 + len(aBreak) - nI], , "@E 9,999,999.99", , .F.))
-
-		// juk continuar aqui aAdd(aOFuncSaldo, TRFunction():New(oSecE1:Cell("SALDO"), , , aOBreak[1 + len(aBreak) - nI], aBreak[nI], , , .F.))
 	next
 
 	if cMovSN == "1"
@@ -723,10 +719,10 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 		endIf
 		cWhere1 += "		AND E1.E1_VENCREA BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' " + CRLF
 		cWhere1 += "		AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' " + CRLF
-		if !empty(cSafra)
+		if !empty(cSafra) .and. cSafra != "0"
 			cWhere1 += "		AND E1.E1_USAFRA = '" + cSafra + "' " + CRLF
 		endIf
-		if !empty(cCultura)
+		if !empty(cCultura) .and. cCultura	!= "     "
 			cWhere1 += "		AND E1.E1_UCULTUR = '" + cCultura + "' " + CRLF
 		endIf
 	#ENDIF
@@ -939,6 +935,8 @@ return cQueryX
 	https://terminaldeinformacao.com/2024/02/27/abrindo-uma-tela-para-marcacao-de-registros-com-a-f_opcoes-maratona-advpl-e-tl-261/
 	https://tdn.totvs.com/display/public/framework/FwListBranches
 	https://terminaldeinformacao.com/knowledgebase/parambox/
+	https://www.blacktdn.com.br/2012/05/para-quem-precisar-desenvolver-uma.html
+	https://logostechnology.zendesk.com/hc/pt-br/articles/360048936174-ADVPL-Tipos-e-par%C3%A2metros-da-fun%C3%A7%C3%A3o-ParamBox-em-ADVPL
 	https://tdn.totvs.com/display/public/framework/StrTran
 	https://tdn.totvs.com/display/public/framework/TRFunction
 */
