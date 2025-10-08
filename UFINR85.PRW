@@ -2,30 +2,12 @@
 #INCLUDE "rwmake.ch"
 #INCLUDE "TOPCONN.ch"
 
-#DEFINE SEM_PARAMETROS
-/*
-	Variaveis utilizadas para parametros
-	Imprime Produtos
-	Do filial 
-	Ate o filial
-	Do Prefixo
-	Ate o prefixo 
-	Do Titulo
-	Ate o Titulo
-	Taxa de juros personalizada?
-	Juros
-	Multa 
-	Grupo de produtos?
-		CRF
-		Especialidades
-		Biologicos
-		Outros
-		Outros conforme cadastrados no grupo de produtos
-*/
+#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
-user function FINR85()
+user function FINR85() // Funcao principal
 	local oReport
 	local aPergs		:= {}
+	local areaPreserv	:= getArea()
 
 	private oSecE1		:= Nil
 	private oSecE5		:= Nil
@@ -111,11 +93,11 @@ user function FINR85()
 	oReport := fReportDef()
 	oReport:PrintDialog()
 
-	DbCloseArea()
-	
+	DbCloseArea() // Fechando o alias cAliasE1
+	restArea(areaPreserv)	
 return
 
-static function fReportDef()
+static function fReportDef() // Funcao que cria o objeto do tipo TReport
 	local oReport
 
 	//Criacao do componente de impressao
@@ -206,7 +188,7 @@ static function fReportDef()
 
 return oReport
 
-static function fGoPrint(oReport)
+static function fGoPrint(oReport) // Funcao que é chamada no momento da impressão.
 	//local cPerg				:= "FIN130"
 	local nAtual			:= 0
 	local nTotal			:= 0
@@ -264,7 +246,7 @@ static function fGoPrint(oReport)
 	endIf
 return
 
-static function printE5(cFilialControle, cPrefixControle, cDocumeControle, cParcelControle, cCodCliControle, cLojaControle)
+static function printE5(cFilialControle, cPrefixControle, cDocumeControle, cParcelControle, cCodCliControle, cLojaControle) // Funcao que imprime a Section com dados do financeiro, dados da tabela SE5
 	local lAliasE5Vazio		:= .T.
 
 	montaE5(cFilialControle, cPrefixControle, cDocumeControle, cParcelControle, cCodCliControle, cLojaControle)
@@ -277,10 +259,11 @@ static function printE5(cFilialControle, cPrefixControle, cDocumeControle, cParc
 			(cAliasE5)->(dbSkip())
 		endDo
 		oSecE5:Finish()
+		DbCloseArea() // Fechando o alias cAliasE5
 	endIf
 return
 
-static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja)
+static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja) // Funcao que monta o cAliasE5
 	local cQueryX	:= ""
 
 	cQueryX += "SELECT "
@@ -317,7 +300,7 @@ static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja)
 	dbUseArea(.T., "TOPCONN", TCGenQry(,,ChangeQuery(cQueryX)), cAliasE5, .F., .T.)
 return
 
-static function printD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle)
+static function printD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle) // Funcao que imprime a Section com dados do faturamento, dados da tabela SD2
 	local lAliasD2Vazio		:= .T.
 
 	montaD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle)
@@ -330,10 +313,11 @@ static function printD2(cFilialControle, cDocumeControle, cCodCliControle, cLoja
 			(cAliasD2)->(dbSkip())
 		endDo
 		oSecD2:Finish()
+		DbCloseArea() // Fechando o alias cAliasD2
 	endIf
 return
 
-static function montaD2(cFil, cDoc, cCodCli, cLoja)
+static function montaD2(cFil, cDoc, cCodCli, cLoja)  // Funcao que monta o cAliasD2
 	local cQueryX	:= ""
 
 	cQueryX += "SELECT "
@@ -372,7 +356,7 @@ static function montaD2(cFil, cDoc, cCodCli, cLoja)
 	dbUseArea(.T., "TOPCONN", TCGenQry(,,ChangeQuery(cQueryX)), cAliasD2, .F., .T.)
 return
 
-static function montaE1()
+static function montaE1()  // Funcao que monta o cAliasE1
 	local cQuery1			:= ""
 	local cFil				:= ""
 	local cListaClientes	:= ""
@@ -393,7 +377,7 @@ static function montaE1()
 	endIf
 return
 
-static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
+static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)  // Funcao que monta a query que será usada para montar o cAliasE1
 	local cQueryX	:= ""
 	local cWhere1	:= ""
 	local cOrder1	:= ""
