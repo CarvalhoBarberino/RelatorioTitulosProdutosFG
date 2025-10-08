@@ -4,7 +4,14 @@
 
 #DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
-user function FINR85() // Funcao principal
+/*/{Protheus.doc} FINR85
+	Funcao que gera relatorios de titulos com dados do faturamento
+	@type user function
+	@author Julio Carvalho Barberino
+	@since 21/08/2025
+	@version 0
+/*/
+user function FINR85()
 	local oReport
 	local aPergs		:= {}
 	local areaPreserv	:= getArea()
@@ -93,11 +100,22 @@ user function FINR85() // Funcao principal
 	oReport := fReportDef()
 	oReport:PrintDialog()
 
-	DbCloseArea() // Fechando o alias cAliasE1
+	(cAliasE1)->(dbCloseArea()) // Fechando o alias cAliasE1
 	restArea(areaPreserv)	
 return
 
-static function fReportDef() // Funcao que cria o objeto do tipo TReport
+/*/{Protheus.doc} fReportDef
+	Funcao que gera o objeto do tipo TReport
+	@type  Static Function
+	@author Julio Carvalho Barberino
+	@since 21/08/2025
+	@version 0
+	@return oReport, TReport, 
+	@example
+	(examples)
+	@see (links_or_references)
+/*/
+static function fReportDef()
 	local oReport
 
 	//Criacao do componente de impressao
@@ -188,7 +206,15 @@ static function fReportDef() // Funcao que cria o objeto do tipo TReport
 
 return oReport
 
-static function fGoPrint(oReport) // Funcao que é chamada no momento da impressão.
+/*/{Protheus.doc} fGoPrint
+	Funcao que é chamada no momento da impressão.
+	@type  static function
+	@author Julio Carvalho Barberino
+	@since 21/08/2025
+	@version 0
+	@param oReport, TReport,
+/*/
+static function fGoPrint(oReport)
 	//local cPerg				:= "FIN130"
 	local nAtual			:= 0
 	local nTotal			:= 0
@@ -246,7 +272,20 @@ static function fGoPrint(oReport) // Funcao que é chamada no momento da impressã
 	endIf
 return
 
-static function printE5(cFilialControle, cPrefixControle, cDocumeControle, cParcelControle, cCodCliControle, cLojaControle) // Funcao que imprime a Section com dados do financeiro, dados da tabela SE5
+/*/{Protheus.doc} printE5
+	Funcao que imprime a Section com dados do financeiro, dados da tabela SE5
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 21/08/2025
+	@version 0
+	@param cFilialControle, c, Filial
+	@param cPrefixControle, c, Prefixo do titulo
+	@param cDocumeControle, c, Numero do titulo
+	@param cParcelControle, c, Numero da parcela
+	@param cCodCliControle, c, codigo do cliente
+	@param cLojaControle, c, loja do cliente
+/*/
+static function printE5(cFilialControle, cPrefixControle, cDocumeControle, cParcelControle, cCodCliControle, cLojaControle)
 	local lAliasE5Vazio		:= .T.
 
 	montaE5(cFilialControle, cPrefixControle, cDocumeControle, cParcelControle, cCodCliControle, cLojaControle)
@@ -259,11 +298,24 @@ static function printE5(cFilialControle, cPrefixControle, cDocumeControle, cParc
 			(cAliasE5)->(dbSkip())
 		endDo
 		oSecE5:Finish()
-		DbCloseArea() // Fechando o alias cAliasE5
+		(cAliasE5)->(dbCloseArea()) // Fechando o alias cAliasE5
 	endIf
 return
 
-static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja) // Funcao que monta o cAliasE5
+/*/{Protheus.doc} montaE5
+	Funcao que monta o cAliasE5
+	@type static function
+	@author Julio Carvalho Barberino
+	@since 21/08/2025
+	@version 0
+	@param cFil, c, Filial
+	@param cPrefix, c, Prefixo do titulo
+	@param cDoc, c, Numero do titulo
+	@param cParcel, c, Numero da parcela
+	@param cCodCli, c, Codigo do cliente
+	@param cLoja, c, Loja do cliente
+/*/
+static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja)
 	local cQueryX	:= ""
 
 	cQueryX += "SELECT "
@@ -295,12 +347,25 @@ static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja) // Funcao 
 
 	If Select(cAliasE5) > 0
 		DbSelectArea(cAliasE5)
-		DbCloseArea()
+		(cAliasE5)->(dbCloseArea())
 	EndIf
 	dbUseArea(.T., "TOPCONN", TCGenQry(,,ChangeQuery(cQueryX)), cAliasE5, .F., .T.)
 return
 
-static function printD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle) // Funcao que imprime a Section com dados do faturamento, dados da tabela SD2
+
+
+/*/{Protheus.doc} printD2
+	Funcao que imprime a Section com dados do faturamento, dados da tabela SD2
+	@type  Static Function
+	@author Julio Carvalho Barberino
+	@since 21/08/2025
+	@version 0
+	@param cFilialControle, c, Filial
+	@param cDocumeControle, c, Numero do titulo e numero da NF
+	@param cCodCliControle, c, Codigo do cliente
+	@param cLojaControle, c, Loja do cliente
+/*/
+static function printD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle)
 	local lAliasD2Vazio		:= .T.
 
 	montaD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle)
@@ -313,11 +378,22 @@ static function printD2(cFilialControle, cDocumeControle, cCodCliControle, cLoja
 			(cAliasD2)->(dbSkip())
 		endDo
 		oSecD2:Finish()
-		DbCloseArea() // Fechando o alias cAliasD2
+		(cAliasD2)->(dbCloseArea()) // Fechando o alias cAliasD2
 	endIf
 return
 
-static function montaD2(cFil, cDoc, cCodCli, cLoja)  // Funcao que monta o cAliasD2
+/*/{Protheus.doc} montaD2
+	Funcao que monta o cAliasD2
+	@type Static Function
+	@author Julio Carvalho Barberino
+	@since 21/08/2025
+	@version 0
+	@param cFil, c, Filial
+	@param cDoc, c, Numero do titulo e numero da NF
+	@param cCodCli, c, Codigo do cliente
+	@param cLoja, c, Loja
+/*/
+static function montaD2(cFil, cDoc, cCodCli, cLoja)
 	local cQueryX	:= ""
 
 	cQueryX += "SELECT "
@@ -351,12 +427,19 @@ static function montaD2(cFil, cDoc, cCodCli, cLoja)  // Funcao que monta o cAlia
 
 	If Select(cAliasD2) > 0
 		DbSelectArea(cAliasD2)
-		DbCloseArea()
+		(cAliasD2)->(dbCloseArea())
 	EndIf
 	dbUseArea(.T., "TOPCONN", TCGenQry(,,ChangeQuery(cQueryX)), cAliasD2, .F., .T.)
 return
 
-static function montaE1()  // Funcao que monta o cAliasE1
+/*/{Protheus.doc} montaE1
+	Funcao que monta o cAliasE1
+	@type Static Function
+	@author Julio Carvalho Barberino
+	@since 21/08/2025
+	@version 0
+/*/
+static function montaE1()
 	local cQuery1			:= ""
 	local cFil				:= ""
 	local cListaClientes	:= ""
@@ -368,7 +451,7 @@ static function montaE1()  // Funcao que monta o cAliasE1
 	cQuery1 := montaQueryE1(cFil, cListaClientes, cListaSituacoes)
 	If Select(cAliasE1) > 0
 		DbSelectArea(cAliasE1)
-		DbCloseArea()
+		(cAliasE1)->(dbCloseArea())
 	EndIf
 	dbUseArea(.T., "TOPCONN", TCGenQry(,,ChangeQuery(cQuery1)), cAliasE1, .F., .T.)
 	dbSelectArea(cAliasE1)
@@ -377,7 +460,21 @@ static function montaE1()  // Funcao que monta o cAliasE1
 	endIf
 return
 
-static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)  // Funcao que monta a query que será usada para montar o cAliasE1
+/*/{Protheus.doc} montaQueryE1
+	Funcao que monta a query que será usada para montar o cAliasE1
+	@type  Static Function
+	@author Julio Carvalho Barberino
+	@since 21/08/2025
+	@version 0
+	@param cFil, c, Filial
+	@param cListaClientes, c, Lista com R_E_C_N_O_ de clientes
+	@param cListaSituacoes, c, Lista com R_E_C_N_O_ de tipos de situacoes
+	@param cDtVenc0, c, data de vencimento inicial do intervalo
+	@param cDtVenc1, c, data de vencimento final do intervalo
+	@param cDtEmis0, c, data de emissao inicio do intervalo
+	@param cDtEmis1, c, data de emissao final do intervalo
+/*/
+static function montaQueryE1(cFil, cListaClientes, cListaSituacoes, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
 	local cQueryX	:= ""
 	local cWhere1	:= ""
 	local cOrder1	:= ""
