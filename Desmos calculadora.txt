@@ -1,0 +1,18 @@
+V_{0}=161851
+
+J_{uros}=0.033333
+
+A_{traso}=30
+
+M_{ulta}=2
+
+A_{ntecipacao}=0
+
+D_{esconto}=0
+
+V_{Vencido}=V_{0}\cdot\left(1+\frac{J_{uros}\cdot A_{traso}+M_{ulta}}{100}\right)\cdot\left(1-\frac{D_{esconto}}{100}\right)
+
+V_{nVencido}=V_{0}\cdot\left(1-\frac{A_{ntecipacao}}{100}\right)\cdot\left(1-\frac{D_{esconto}}{100}\right)
+
+V_{juro}=V_{encido}-V_{0}
+

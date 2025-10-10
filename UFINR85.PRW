@@ -3,7 +3,7 @@
 #INCLUDE "TOPCONN.ch"
 
 #DEFINE NOME_DO_FONTE "UFINR85.PRW"
-#DEFINE MOSTRA_QUERY
+//#DEFINE MOSTRA_QUERY
 //#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
 /*/{Protheus.doc} FINR85
@@ -31,7 +31,7 @@ user function FINR85()
 	private cCliSN		:= "2"
 	private cProdSN		:= "1"
 	private cMovSN		:= "1"
-	private cJurPadSN	:= "2"
+	private cJurPadSN	:= "1"
 	private nJur		:= 0
 	private cJur		:= ""
 	private nMulta		:= 0
@@ -251,7 +251,7 @@ user function FINR85()
 			cJur := "(E1.E1_PORCJUR * 100)"
 			cMulta := "E1.E1_VLMULTA"
 		else
-			cJur := Str(nJur, 0, 2)
+			cJur := Str(nJur, 0, 6)
 			cMulta := Str(nMulta, 0, 2)
 		endIf
 	endIf
@@ -854,7 +854,7 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 	cQueryX += "		ELSE ROUND(E1_EXT.SALDO * (1 - " + cValToChar(nAntecipcao) + " / 100) * (1 - " + cValToChar(nDesconto) + " / 100), 2) " + CRLF
 	cQueryX += "	END AS VL_CORRIG, " + CRLF
 	cQueryX += "	CASE " + CRLF
-	cQueryX += "		WHEN E1_EXT.ATRASO > 0 THEN ROUND(E1_EXT.SALDO * (E1_EXT.TX_JUROS / 100) * (E1_EXT.ATRASO / 30.5), 2) ELSE 0 " + CRLF
+	cQueryX += "		WHEN E1_EXT.ATRASO > 0 THEN ROUND(E1_EXT.SALDO * ((E1_EXT.TX_JUROS * E1_EXT.ATRASO + E1_EXT.MULTA) / 100), 2) ELSE 0 " + CRLF
 	cQueryX += "	END AS VL_JUROS " + CRLF
 	cQueryX += "FROM " + CRLF
 	cQueryX += "	( " + CRLF
