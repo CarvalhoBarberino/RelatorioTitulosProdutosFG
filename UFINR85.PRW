@@ -6,14 +6,14 @@
 //#DEFINE MOSTRA_QUERY
 //#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
-/*/{Protheus.doc} FINR85
+/*/{Protheus.doc} UFINR85
 	Funcao que gera relatorios de titulos com dados do faturamento
 	@type user function
 	@author Julio Carvalho Barberino
 	@since 21/08/2025
 	@version 0
 /*/
-user function FINR85()
+user function UFINR85()
 	local oReport
 	local aPergs		:= {}
 	local areaPreserv	:= getArea()
@@ -401,6 +401,7 @@ static function fReportDef()
 		TRCell():New(oSecD2, "PROD_DESCRI", cAliasD2, "Produto", , 40, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		TRCell():New(oSecD2, "QUANTIDADE", cAliasD2, "Quant", , 6, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		TRCell():New(oSecD2, "UNIDADE", cAliasD2, "Un", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
+		TRCell():New(oSecD2, "PROPORCIONAL", cAliasD2, "Total Produto", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	endIf
 
 	
@@ -423,6 +424,7 @@ static function fGoPrint(oReport)
 	local cPrefixControle	:= ""
 	local cDocumeControle	:= ""
 	local cLojaControle		:= ""
+	local nVlOrig			:= 0
 
 	//Pegando as secoes do relatorio
 	oSecE1 := oReport:Section(1)
@@ -437,6 +439,7 @@ static function fGoPrint(oReport)
 	cParcelControle		:= (cAliasE1)->PARCELA
 	cCodCliControle 	:= (cAliasE1)->CLI_COD
 	cLojaControle		:= (cAliasE1)->LOJA
+	nVlOrig				:= (cAliasE1)->VL_ORIG
 	// Enquanto houver dados
 	oSecE1:Init()
 	while !(cAliasE1)->(Eof())
@@ -453,7 +456,7 @@ static function fGoPrint(oReport)
 				printE5(cFilialControle, cPrefixControle, cDocumeControle, cParcelControle, cCodCliControle, cLojaControle)
 			endIf
 			if cProdSN == "1"
-				printD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle)
+				printD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle, nVlOrig)
 			endIf
 			cFilialControle 	:= (cAliasE1)->FILIAL
 			cPrefixControle 	:= (cAliasE1)->PREFIXO
@@ -461,13 +464,14 @@ static function fGoPrint(oReport)
 			cParcelControle		:= (cAliasE1)->PARCELA
 			cCodCliControle 	:= (cAliasE1)->CLI_COD
 			cLojaControle		:= (cAliasE1)->LOJA
+			nVlOrig				:= (cAliasE1)->VL_ORIG
 			//oSecE1:Init()
 			DbSelectArea(cAliasE1)
 		end
 	endDo
 	oSecE1:Finish()
 	if !lAliasE1Vazio .and. (cProdSN == "1")
-		printD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle)
+		printD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle, nVlOrig)
 	endIf
 return
 
@@ -557,8 +561,6 @@ static function montaE5(cFil, cPrefix, cDoc, cParcel, cCodCli, cLoja)
 	dbUseArea(.T., "TOPCONN", TCGenQry(,,ChangeQuery(cQueryX)), cAliasE5, .F., .T.)
 return
 
-
-
 /*/{Protheus.doc} printD2
 	Funcao que imprime a Section com dados do faturamento, dados da tabela SD2
 	@type Function
@@ -569,11 +571,12 @@ return
 	@param cDocumeControle, c, Numero do titulo e numero da NF
 	@param cCodCliControle, c, Codigo do cliente
 	@param cLojaControle, c, Loja do cliente
+	@param nVlOrig, n, Valor original do título
 /*/
-static function printD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle)
+static function printD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle, nVlOrig)
 	local lAliasD2Vazio		:= .T.
 
-	montaD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle)
+	montaD2(cFilialControle, cDocumeControle, cCodCliControle, cLojaControle, nVlOrig)
 	dbSelectArea(cAliasD2)
 	if !(cAliasD2)->(Eof())
 		lAliasD2Vazio := .F. // Indica que houve pelo menos um registro no alias cAliasD2
@@ -598,7 +601,7 @@ return
 	@param cCodCli, c, Codigo do cliente
 	@param cLoja, c, Loja
 /*/
-static function montaD2(cFil, cDoc, cCodCli, cLoja)
+static function montaD2(cFil, cDoc, cCodCli, cLoja, nVlOrig)
 	local cQueryX	:= ""
 
 	cQueryX += "SELECT " + CRLF
@@ -614,9 +617,17 @@ static function montaD2(cFil, cDoc, cCodCli, cLoja)
 	cQueryX += "	D2.D2_UM AS UNIDADE, " + CRLF
 	cQueryX += "	D2.D2_PRCVEN AS PRC_UNIT, " + CRLF
 	cQueryX += "	D2.D2_TOTAL AS PRC_ITEM, " + CRLF
-	cQueryX += "	D2.D2_QUANT * D2.D2_PRCVEN AS MULTIPLI_OK " + CRLF
+	cQueryX += "	D2.D2_QUANT * D2.D2_PRCVEN AS MULTIPLI_OK, " + CRLF
+	cQueryX += "	ROUND('" + cValToChar(nVlOrig) + "' * D2.D2_TOTAL / F2_VALBRUT, 2) AS PROPORCIONAL " + CRLF
 	cQueryX += "FROM " + CRLF
 	cQueryX += "	" + RetSqlName("SD2") + " D2 " + CRLF
+	cQueryX += "	INNER JOIN " + CRLF
+	cQueryX += "		" + RetSqlName("SF2") + " F2 " + CRLF
+	cQueryX += "		ON F2_DOC = D2_DOC " + CRLF
+	cQueryX += "		AND F2_SERIE = D2_SERIE " + CRLF
+	cQueryX += "		AND F2_CLIENTE = D2_CLIENTE " + CRLF
+	cQueryX += "		AND F2_LOJA = D2_LOJA " + CRLF
+	cQueryX += "		AND F2.D_E_L_E_T_ = '' " + CRLF
 	cQueryX += "	INNER JOIN " + CRLF
 	cQueryX += "		" + RetSqlName("SB1") + " B1 " + CRLF
 	cQueryX += "		ON D2.D2_COD = B1.B1_COD " + CRLF
