@@ -86,6 +86,7 @@ user function UFINR85()
 
 	if !ParamBox(aPergs, "Parametros de filtro") // https://terminaldeinformacao.com/knowledgebase/parambox/ https://www.blacktdn.com.br/2012/05/para-quem-precisar-desenvolver-uma.html https://logostechnology.zendesk.com/hc/pt-br/articles/360048936174-ADVPL-Tipos-e-par%C3%A2metros-da-fun%C3%A7%C3%A3o-ParamBox-em-ADVPL
 		msgAlert("Os parametros não foram carregados", NOME_DO_FONTE)
+		restArea(areaPreserv)
 		return
 	else
 		cDtVenc0	:= dToS(MV_PAR01)
@@ -230,6 +231,7 @@ user function UFINR85()
 		},					120, ".T.", .F.})
 	if !ParamBox(aPergs, "Parâmetros do agrupamento")
 		msgAlert("Os parametros não foram carregados", NOME_DO_FONTE)
+		restArea(areaPreserv)
 		return
 	else
 		cProdSN		:= MV_PAR01
@@ -249,7 +251,18 @@ user function UFINR85()
 	else
 		if cJurPadSN == "1"
 			cJur := "(E1.E1_PORCJUR * 100)"
-			cMulta := "E1.E1_VLMULTA"
+			cMulta := superGetMv("MV_LJMULTA", .F., "ERRO")
+			if "N" != valType(cMulta) 
+				msgAlert("O parâmetro MV_LJMULTA não é numerico. Encerrar", NOME_DO_FONTE)
+				restArea(areaPreserv)
+				return
+			elseIf empty(cMulta)
+				msgAlert("O parâmetro MV_LJMULTA não contém dados. Encerrar", NOME_DO_FONTE)
+				restArea(areaPreserv)
+				return
+			else
+				cMulta := cValToChar(cMulta)
+			endIf
 		else
 			cJur := Str(nJur, 0, 6)
 			cMulta := Str(nMulta, 0, 2)
@@ -267,11 +280,14 @@ user function UFINR85()
 		nDesconto := nPerAD
 	else
 		msgAlert("Não foi definido status do campo Antcipação/Desconto. Encerrar", NOME_DO_FONTE)
+		restArea(areaPreserv)
+		return
 	endIf
 
 	montaE1()
 	If Select(cAliasE1) == 0
 		msgAlert("Alias não cAliasE1 não existe. Encerrar", NOME_DO_FONTE)
+		restArea(areaPreserv)
 		return
 	EndIf
 
