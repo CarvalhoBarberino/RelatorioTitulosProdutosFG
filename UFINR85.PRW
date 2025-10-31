@@ -18,6 +18,8 @@ user function UFINR85()
 	local aPergs		:= {}
 	local areaPreserv	:= getArea()
 	local nI
+	local aAnswersBox1	:= {}
+	local aAnswersBox2	:= {}
 
 	private oSecE1		:= Nil
 	private oSecE5		:= Nil
@@ -84,11 +86,12 @@ user function UFINR85()
 	aadd(aPergs, {2, "Safra",										cSafra,		{"0=Não filtrar", "1=Verao", "2=2ª  Safra", "3=Campanha  Verao", "4=Campanha  2ª  Safra"},					50, ".T.", .F.})
 	aAdd(aPergs, {1, "Cultura",										cCultura,		"",				"",		"NP3",	"",		50,	.F.}) // NP3 - Culturas
 
-	if !ParamBox(aPergs, "Parametros de filtro") // https://terminaldeinformacao.com/knowledgebase/parambox/ https://www.blacktdn.com.br/2012/05/para-quem-precisar-desenvolver-uma.html https://logostechnology.zendesk.com/hc/pt-br/articles/360048936174-ADVPL-Tipos-e-par%C3%A2metros-da-fun%C3%A7%C3%A3o-ParamBox-em-ADVPL
+	if !ParamBox(aPergs, "Parametros de filtro", @aAnswersBox1, /*bOk*/, /*aButtons*/, /*lCentered*/, /*nPosx*/, /*nPosy*/, /*oDlgWizard*/, NOME_DO_FONTE + "box1", .T., .T.) // https://terminaldeinformacao.com/knowledgebase/parambox/ https://www.blacktdn.com.br/2012/05/para-quem-precisar-desenvolver-uma.html https://logostechnology.zendesk.com/hc/pt-br/articles/360048936174-ADVPL-Tipos-e-par%C3%A2metros-da-fun%C3%A7%C3%A3o-ParamBox-em-ADVPL
 		msgAlert("Os parametros não foram carregados", NOME_DO_FONTE)
 		restArea(areaPreserv)
 		return
 	else
+		ParamSave(NOME_DO_FONTE + "box1", aAnswersBox1, "1")
 		cDtVenc0	:= dToS(MV_PAR01)
 		cDtVenc1	:= dToS(MV_PAR02)
 		cDtEmis0	:= dToS(MV_PAR03)
@@ -229,11 +232,12 @@ user function UFINR85()
 		"2=Regional", ;
 		"3=Nome de vendedor" ;
 		},					120, ".T.", .F.})
-	if !ParamBox(aPergs, "Parâmetros do agrupamento")
+	if !ParamBox(aPergs, "Parâmetros do agrupamento", @aAnswersBox2, /*bOk*/, /*aButtons*/, /*lCentered*/, /*nPosx*/, /*nPosy*/, /*oDlgWizard*/, NOME_DO_FONTE + "box2", .T., .T.)
 		msgAlert("Os parametros não foram carregados", NOME_DO_FONTE)
 		restArea(areaPreserv)
 		return
 	else
+		ParamSave(NOME_DO_FONTE + "box2", aAnswersBox2, "1")
 		cProdSN		:= MV_PAR01
 		cMovSN		:= MV_PAR02
 		aAgrop[1]	:= MV_PAR03
