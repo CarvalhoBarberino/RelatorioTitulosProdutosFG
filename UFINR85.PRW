@@ -774,9 +774,9 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 			cOrder1 += ", CLI_COD"
 			aAdd(aBreak, "CLI_COD")
 		elseIf aAgrop[nI] == "2" // por vencimento
-			cOrder1 += ", VENC_REAL"
+			cOrder1 += ", E1_VENCREA"
 			if cTipPer == "1" // Diário
-				aAdd(aBreak, "VENC_REAL")
+				aAdd(aBreak, "E1_VENCREA")
 			elseIf cTipPer == "2" // Semanal
 				aAdd(aBreak, "WVENCTO")
 			elseIf cTipPer == "3" // Quinzenal
@@ -791,9 +791,9 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 				msgAlert("falha no tipo de agrupamento (tipo de periodo)", NOME_DO_FONTE)
 			endIf
 		elseIf aAgrop[nI] == "3" // por emissao
-			cOrder1 += ", EMISSAO"
+			cOrder1 += ", E1_EMISSAO"
 			if cTipPer == "1" // Diário
-				aAdd(aBreak, "EMISSAO")
+				aAdd(aBreak, "E1_EMISSAO")
 			elseIf cTipPer == "2" // Semanal
 				aAdd(aBreak, "WEMISSAO")
 			elseIf cTipPer == "3" // Quinzenal
