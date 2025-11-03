@@ -326,6 +326,7 @@ static function fReportDef()
 		"Titulos com detalhamento de produtos" /*cTitle*/, /*uParam*/, ;
 		{|oReport| fGoPrint(oReport),} /*bAction*/, /*cDescription*/, ;
 		.T. /*lLandscape*/, /*uTotalText*/, /*lTotalInLine*/, /*cPageTText*/, /*lPageTInLine*/, /*lTPageBreak*/, /*nColSpace*/)
+	oReport:SetLogo("/system/logo.bmp") 
 	oReport:SetTotalInLine(.F.)
 	oReport:lParamPage := .F.
 	oReport:oPage:SetPaperSize(9)
@@ -387,7 +388,7 @@ static function fReportDef()
 		if aBreak[nI] == "CONTRATO"
 			TRCell():New(oSecE1, "CONTRATO", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		endIf
-		if aBreak[nI] $ "WVENCTO#QVENCTO#MVENCTO#SVENCTO#AVENCTO#EMISSAO#WEMISSAO#QEMISSAO#MEMISSAO#SEMISSAO#AEMISSAO"
+		if aBreak[nI] $ "DVENCTO#WVENCTO#QVENCTO#MVENCTO#SVENCTO#AVENCTO#DEMISSAO#WEMISSAO#QEMISSAO#MEMISSAO#SEMISSAO#AEMISSAO"
 			TRCell():New(oSecE1, aBreak[nI], cAliasE1, "Oculto", , 1, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		endIf
 		//Quebras do relatorio
@@ -405,7 +406,7 @@ static function fReportDef()
 		TRCell():New(oSecE5, "NUMERO", cAliasE5, "Doc", , 13, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		TRCell():New(oSecE5, "PARCELA", cAliasE5, "Parc", , 3, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		TRCell():New(oSecE5, "DATA_MOV", cAliasE5, "Dt.Mov", , 12, , , "LEFT" , , "LEFT" , , , , , , .T.)
-		TRCell():New(oSecE5, "VALOR_MOV", cAliasE5, "Valor", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
+		TRCell():New(oSecE5, "VALOR_MOV", cAliasE5, "Valor", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		TRCell():New(oSecE5, "BANCO_MOV", cAliasE5, "Banc", , 3, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		TRCell():New(oSecE5, "AGENCIA_MOV", cAliasE5, "Agencia", , 6, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		TRCell():New(oSecE5, "CONTA_MOV", cAliasE5, "Conta", , 9, , , "LEFT" , , "LEFT" , , , , , , .T.)
@@ -423,8 +424,6 @@ static function fReportDef()
 		TRCell():New(oSecD2, "UNIDADE", cAliasD2, "Un", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		TRCell():New(oSecD2, "PROPORCIONAL", cAliasD2, "Total Produto", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	endIf
-
-	
 
 return oReport
 
@@ -774,9 +773,9 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 			cOrder1 += ", CLI_COD"
 			aAdd(aBreak, "CLI_COD")
 		elseIf aAgrop[nI] == "2" // por vencimento
-			cOrder1 += ", E1_VENCREA"
+			cOrder1 += ", DVENCTO"
 			if cTipPer == "1" // Diário
-				aAdd(aBreak, "E1_VENCREA")
+				aAdd(aBreak, "DVENCTO")
 			elseIf cTipPer == "2" // Semanal
 				aAdd(aBreak, "WVENCTO")
 			elseIf cTipPer == "3" // Quinzenal
@@ -791,9 +790,9 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 				msgAlert("falha no tipo de agrupamento (tipo de periodo)", NOME_DO_FONTE)
 			endIf
 		elseIf aAgrop[nI] == "3" // por emissao
-			cOrder1 += ", E1_EMISSAO"
+			cOrder1 += ", DEMISSAO"
 			if cTipPer == "1" // Diário
-				aAdd(aBreak, "E1_EMISSAO")
+				aAdd(aBreak, "DEMISSAO")
 			elseIf cTipPer == "2" // Semanal
 				aAdd(aBreak, "WEMISSAO")
 			elseIf cTipPer == "3" // Quinzenal
@@ -857,8 +856,8 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 	cQueryX += "	CASE " + CRLF
 	cQueryX += "		WHEN E1_EXT.ATRASO > 0 THEN TO_CHAR(E1_EXT.ATRASO) ELSE '' " + CRLF
 	cQueryX += "	END AS ATRASO, " + CRLF
-	cQueryX += "	E1_EXT.E1_EMISSAO, " + CRLF
-	cQueryX += "	E1_EXT.E1_VENCREA, " + CRLF
+	cQueryX += "	E1_EXT.DEMISSAO, " + CRLF
+	cQueryX += "	E1_EXT.DVENCTO, " + CRLF
 	cQueryX += "	E1_EXT.WEMISSAO, " + CRLF
 	cQueryX += "	E1_EXT.WVENCTO, " + CRLF
 	cQueryX += "	E1_EXT.QEMISSAO, " + CRLF
@@ -910,8 +909,8 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 	cQueryX += "		" + cJur + " AS TX_JUROS, " + CRLF
 	cQueryX += "		" + cMulta + " AS MULTA, " + CRLF
 	cQueryX += "		TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO, " + CRLF
-	cQueryX += "		E1.E1_EMISSAO, " + CRLF
-	cQueryX += "		E1.E1_VENCREA, " + CRLF
+	cQueryX += "		E1.E1_EMISSAO AS DEMISSAO, " + CRLF
+	cQueryX += "		E1.E1_VENCREA AS DVENCTO, " + CRLF
 	cQueryX += "		TRUNC((TO_DATE(E1.E1_EMISSAO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WEMISSAO, " + CRLF
 	cQueryX += "		TRUNC((TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WVENCTO, " + CRLF
 	cQueryX += "		CASE " + CRLF
