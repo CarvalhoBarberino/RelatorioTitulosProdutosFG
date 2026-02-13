@@ -749,6 +749,7 @@ return
 static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cDtEmis0, cDtEmis1)
 	local nI		:= 0
 	local nJ		:= 0
+	local cDtOracle	:= dToS(GetdDataBase())
 	local cQueryX	:= ""
 	local cWhere1	:= ""
 	local cOrder1	:= ""
@@ -968,7 +969,7 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 	cQueryX += "		E1.E1_VALOR AS VL_ORIG, " + CRLF
 	cQueryX += "		" + cJur + " AS TX_JUROS, " + CRLF
 	cQueryX += "		" + cMulta + " AS MULTA, " + CRLF
-	cQueryX += "		TRUNC(SYSDATE) - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO, " + CRLF
+	cQueryX += "		TO_DATE(" + cDtOracle + ", 'YYYYMMDD') - TO_DATE(E1.E1_VENCREA, 'YYYYMMDD') AS ATRASO, " + CRLF
 	cQueryX += "		E1.E1_EMISSAO AS DEMISSAO, " + CRLF
 	cQueryX += "		E1.E1_VENCREA AS DVENCTO, " + CRLF
 	cQueryX += "		TRUNC((TO_DATE(E1.E1_EMISSAO, 'YYYYMMDD') - TO_DATE('19700101', 'YYYYMMDD')) / 7) AS WEMISSAO, " + CRLF
