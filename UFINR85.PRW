@@ -381,23 +381,23 @@ static function fReportDef()
 		"LEFT" /*lLineBreak*/, /*lCellBreak*/, /*nColSpace*/, /*lAutoSize*/, /*nClrBack*/, /*nClrFore*/, ;
 		.T. /*lBold*/) // https://tdn.totvs.com/display/framework/TRCell
 	TRCell():New(oSecE1, "LOJA", cAliasE1, "Loja", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "CLI_NOME", cAliasE1, "Cliente", , 25, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "CLI_NOME", cAliasE1, "Cliente", , 27, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "PREFIXO", cAliasE1, "Prf", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "DOCUMENTO", cAliasE1, "Doc", , 12, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "PARCELA", cAliasE1, "Parc", , 3, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "TIPO", cAliasE1, "Tp", , 4, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "NATUREZA", cAliasE1, "Nature", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "EMISSAO", cAliasE1, "Emissao", , 12, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "VENCIMENTO", cAliasE1, "Venc", , 12, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "VENC_REAL", cAliasE1, "VencReal", , 12, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "EMISSAO", cAliasE1, "Emissao", , 13, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VENCIMENTO", cAliasE1, "Venc", , 13, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VENC_REAL", cAliasE1, "VencReal", , 13, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "BANCO", cAliasE1, "Bco", , 3, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "ST", cAliasE1, "St", , 2, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "VL_ORIG", cAliasE1, "V.Orig", "@E 9,999,999.99", 11, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "SALDO", cAliasE1, "V.Atual", "@E 9,999,999.99", 11, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VL_ORIG", cAliasE1, "V.Orig", "@E 9,999,999.99", 13, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "SALDO", cAliasE1, "V.Atual", "@E 9,999,999.99", 13, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	//TRCell():New(oSecE1, "NUMBCO", cAliasE1, "NumBco", , 16, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "VL_JUROS", cAliasE1, "Correção Financeira", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VL_JUROS", cAliasE1, "Correção Financeira", "@E 9,999,999.99", 13, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "ATRASO", cAliasE1, "Atraso", , 6, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "VL_CORRIG", cAliasE1, "V.Corri", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VL_CORRIG", cAliasE1, "V.Corri", "@E 9,999,999.99", 14, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	for nI := len(aBreak) to 1 step -1
 		if aBreak[nI] $ "VEND_NOME#VEND_GER#VEND_REGI"
 			TRCell():New(oSecE1, "VEND_NOME", cAliasE1, "Vendedor", , 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
@@ -775,14 +775,13 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 		cWhere1 += "		AND E1.E1_UCULTUR = '" + cCultura + "' " + CRLF
 	endIf
 
-	cWhere1 += "		AND E1.E1_SALDO <> 0 " + CRLF
 	cWhere1 += "		AND E1.D_E_L_E_T_ = '' " + CRLF
 
 	if cStatusTit != "1" // Todos
 		if cStatusTit == "2" // Pendente
-			cWhere1 += "		AND E1_SALDO <> 0 " + CRLF
+			cWhere1 += "		AND E1.E1_SALDO <> 0 " + CRLF
 		elseIf cStatusTit == "3" // Quitado
-			cWhere1 += "		AND E1_SALDO = 0 " + CRLF
+			cWhere1 += "		AND E1.E1_SALDO = 0 " + CRLF
 		endIf
 	endIf
 
