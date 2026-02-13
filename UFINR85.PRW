@@ -4,7 +4,6 @@
 
 #DEFINE NOME_DO_FONTE "UFINR85.PRW"
 //#DEFINE MOSTRA_QUERY
-//#DEFINE SEM_PARAMETROS // Usado para testes durante o desenvolvimento
 
 /*/{Protheus.doc} UFINR85
 	Funcao que gera relatorios de titulos com dados do faturamento
@@ -47,11 +46,14 @@ user function UFINR85()
 	private cTipHier	:= "3"
 	private aFil		:= {}
 	private cFil		:= ""
+	private aSituFRV	:= {}
+	private cSitu		:= ""
 	private aSitu		:= {}
 	private cSit		:= ""
 	private cCli		:= ""
 	private cSafra		:= "0"
 	private cCultura	:= "     "
+	private cStatusTit	:= "1"
 
 	private cDtVenc0	:= Ctod(Space(8))
 	private cDtVenc1	:= Ctod(Space(8))
@@ -85,6 +87,12 @@ user function UFINR85()
 		},					120, ".T.", .F.})
 	aadd(aPergs, {2, "Safra",										cSafra,		{"0=Não filtrar", "1=Verao", "2=2ª  Safra", "3=Campanha  Verao", "4=Campanha  2ª  Safra"},					50, ".T.", .F.})
 	aAdd(aPergs, {1, "Cultura",										cCultura,		"",				"",		"NP3",	"",		50,	.F.}) // NP3 - Culturas
+	aadd(aPergs, {2, "Status do Título",							cStatusTit,		;
+		{;
+		"1=Todos", ;
+		"2=Pendente", ;
+		"3=Quitado", ;
+		},					120, ".T.", .F.})
 
 	if !ParamBox(aPergs, "Parametros de filtro", @aAnswersBox1, /*bOk*/, /*aButtons*/, /*lCentered*/, /*nPosx*/, /*nPosy*/, /*oDlgWizard*/, NOME_DO_FONTE + "box1", .T., .T.) // https://terminaldeinformacao.com/knowledgebase/parambox/ https://www.blacktdn.com.br/2012/05/para-quem-precisar-desenvolver-uma.html https://logostechnology.zendesk.com/hc/pt-br/articles/360048936174-ADVPL-Tipos-e-par%C3%A2metros-da-fun%C3%A7%C3%A3o-ParamBox-em-ADVPL
 		msgAlert("Os parametros não foram carregados", NOME_DO_FONTE)
@@ -108,6 +116,7 @@ user function UFINR85()
 		cPrdG		:= MV_PAR14
 		cSafra		:= MV_PAR15
 		cCultura	:= MV_PAR16
+		cStatusTit	:= MV_PAR17
 	EndIf
 
 	cFil := ""
@@ -127,24 +136,34 @@ user function UFINR85()
 	endif
 
 	if cSitSN == "1" // Seleciona situacoes
+		DbSelectArea("FRV")
+		FRV->(DbSetOrder(1))
+		FRV->(DbGoTop())
+		while FRV->(!EoF())
+			aAdd(aSituFRV, FRV->FRV_CODIGO + "-" + FRV->FRV_DESCRI)
+			cSitu += FRV->FRV_CODIGO
+			FRV->(dbSkip())
+		endDo
+		FRV->(dbCloseArea())
+
 		if F_Opcoes(;
-				@aSitu,;	//uVarRet
-			"Filtro de tipos de situacoes",;	//cTitulo
-			{"0-CARTEIRA", "1-SIMPLES", "2-DESCONTADA", "3-CAUCIONADA", "4-VINCULADA", "5-COM ADVOGADO", "6-JUDICIAL", "7-CAUÇÃO DESCONTADA", "F-CARTEIRA PROTESTO", "G-CARTEIRA ACORDO", "H-CARTÓRIO", "I-CARTEIRA CAIXA LOJA", "J-CARTEIRA CAIXA GERAL", "K-PIX", "L-PDD", "M-PCLD", "N-CHEQUES DEVOLVIDOS", "O-TESTE"},;		//aOpcoes
-			"01234567FGHIJKLMNO",;		//cOpcoes
-			12,;		//nLin1
-			49,;		//nCol1
-			.F.,;		//l1Elem
-			1,;			//nTam
-			999,;		//nElemRet
-			.T.,;		//lMultSelect
-			.F.,;		//lComboBox
-			Nil,;		//cCampo
-			.F.,;		//lNotOrdena
-			.F.,;		//lNotPesq
-			.T.,;		//lForceRe
-			Nil;		//cF3
-			)			// https://terminaldeinformacao.com/2024/02/27/abrindo-uma-tela-para-marcacao-de-registros-com-a-f_opcoes-maratona-advpl-e-tl-261/
+				@aSitu /*uVarRet*/,;
+				"Filtro de tipos de situacoes" /*cTitulo*/,;
+				aSituFRV /*aOpcoes*/,;
+				cSitu /*cOpcoes*/,;
+				12 /*nLin1*/,;
+				49 /*nCol1*/,;
+				.F. /*l1Elem*/,;
+				TamSX3("FRV_CODIGO")[1] /*nTam*/,;
+				999 /*nElemRet*/,;
+				.T. /*lMultSelect*/,;
+				.F. /*lComboBox*/,;
+				Nil /*cCampo*/,;
+				.F. /*lNotOrdena*/,;
+				.F. /*lNotPesq*/,;
+				.T. /*lForceRe*/,;
+				Nil /*cF3*/;
+				)// https://terminaldeinformacao.com/2024/02/27/abrindo-uma-tela-para-marcacao-de-registros-com-a-f_opcoes-maratona-advpl-e-tl-261/
 			if len(aSitu) > 0
 				for nI := 1 to len(aSitu)
 					cSit += aSitu[nI] + ";"
@@ -256,7 +275,7 @@ user function UFINR85()
 		if cJurPadSN == "1"
 			cJur := "(E1.E1_PORCJUR * 100)"
 			cMulta := superGetMv("MV_LJMULTA", .F., "ERRO")
-			if "N" != valType(cMulta) 
+			if "N" != valType(cMulta)
 				msgAlert("O parâmetro MV_LJMULTA não é numerico. Encerrar", NOME_DO_FONTE)
 				restArea(areaPreserv)
 				return
@@ -326,7 +345,7 @@ static function fReportDef()
 		"Titulos com detalhamento de produtos" /*cTitle*/, /*uParam*/, ;
 		{|oReport| fGoPrint(oReport),} /*bAction*/, /*cDescription*/, ;
 		.T. /*lLandscape*/, /*uTotalText*/, /*lTotalInLine*/, /*cPageTText*/, /*lPageTInLine*/, /*lTPageBreak*/, /*nColSpace*/)
-	oReport:SetLogo("/system/logo.bmp") 
+	oReport:SetLogo("/system/logo.bmp")
 	oReport:SetTotalInLine(.F.)
 	oReport:lParamPage := .F.
 	oReport:oPage:SetPaperSize(9)
@@ -373,10 +392,10 @@ static function fReportDef()
 	TRCell():New(oSecE1, "VENC_REAL", cAliasE1, "VencReal", , 12, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "BANCO", cAliasE1, "Bco", , 3, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "ST", cAliasE1, "St", , 2, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "VL_ORIG", cAliasE1, "V.Orig", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "SALDO", cAliasE1, "V.Atual", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VL_ORIG", cAliasE1, "V.Orig", "@E 9,999,999.99", 11, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "SALDO", cAliasE1, "V.Atual", "@E 9,999,999.99", 11, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	//TRCell():New(oSecE1, "NUMBCO", cAliasE1, "NumBco", , 16, , , "LEFT" , , "LEFT" , , , , , , .T.)
-	TRCell():New(oSecE1, "VL_JUROS", cAliasE1, "Juro", "@E 999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
+	TRCell():New(oSecE1, "VL_JUROS", cAliasE1, "Correção Financeira", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "ATRASO", cAliasE1, "Atraso", , 6, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	TRCell():New(oSecE1, "VL_CORRIG", cAliasE1, "V.Corri", "@E 9,999,999.99", 10, , , "LEFT" , , "LEFT" , , , , , , .T.)
 	for nI := len(aBreak) to 1 step -1
@@ -389,7 +408,7 @@ static function fReportDef()
 			TRCell():New(oSecE1, "CONTRATO", cAliasE1, "Vendedor", , 8, , , "LEFT" , , "LEFT" , , , , , , .T.)
 		endIf
 		if aBreak[nI] $ "DVENCTO#WVENCTO#QVENCTO#MVENCTO#SVENCTO#AVENCTO#DEMISSAO#WEMISSAO#QEMISSAO#MEMISSAO#SEMISSAO#AEMISSAO"
-			TRCell():New(oSecE1, aBreak[nI], cAliasE1, "Oculto", , 1, , , "LEFT" , , "LEFT" , , , , , , .T.)
+			TRCell():New(oSecE1, aBreak[nI], cAliasE1, "oBreak", , 1, , , "LEFT" , , "LEFT" , , , , , , .T.) // Este campo deve permanecer oculto para o usuário
 		endIf
 		//Quebras do relatorio
 		aAdd(aOBreak, TRBreak():New(oSecE1, oSecE1:Cell(aBreak[nI]), , .F.))
@@ -736,28 +755,70 @@ static function montaQueryE1(cFil, cCli, cListaSituacoes, cDtVenc0, cDtVenc1, cD
 
 	cWhere1 += "	WHERE " + CRLF
 	cWhere1 += "		E1.E1_TIPO = 'NF' " + CRLF
-	#IFNDEF SEM_PARAMETROS
-		if empty(cFil)
-			cFil := "('" + StrTran(xFilial("SE1"), " ", "", , ) + StrTran(fwFilial(), " ", "", , ) + "')"
-		endIf
-		cWhere1 += "		AND E1.E1_FILORIG IN " + cFil + " " + CRLF
-		if !empty(cCli)
-			cWhere1 += "		AND A1.R_E_C_N_O_ IN " + cCli + " " + CRLF
-		endIf
-		if !empty(cListaSituacoes)
-			cWhere1 += "		AND E1.E1_SITUACA IN " + cListaSituacoes + " " + CRLF
-		endIf
-		cWhere1 += "		AND E1.E1_VENCREA BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' " + CRLF
-		cWhere1 += "		AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' " + CRLF
-		if !empty(cSafra) .and. cSafra != "0"
-			cWhere1 += "		AND E1.E1_USAFRA = '" + cSafra + "' " + CRLF
-		endIf
-		if !empty(cCultura) .and. cCultura	!= "     "
-			cWhere1 += "		AND E1.E1_UCULTUR = '" + cCultura + "' " + CRLF
-		endIf
-	#ENDIF
+
+	if empty(cFil)
+		cFil := "('" + StrTran(xFilial("SE1"), " ", "", , ) + StrTran(fwFilial(), " ", "", , ) + "')"
+	endIf
+	cWhere1 += "		AND E1.E1_FILORIG IN " + cFil + " " + CRLF
+	if !empty(cCli)
+		cWhere1 += "		AND A1.R_E_C_N_O_ IN " + cCli + " " + CRLF
+	endIf
+	if !empty(cListaSituacoes)
+		cWhere1 += "		AND E1.E1_SITUACA IN " + cListaSituacoes + " " + CRLF
+	endIf
+	cWhere1 += "		AND E1.E1_VENCREA BETWEEN '" + cDtVenc0 + "' AND '" + cDtVenc1 + "' " + CRLF
+	cWhere1 += "		AND E1.E1_EMISSAO BETWEEN '" + cDtEmis0 + "' AND '" + cDtEmis1 + "' " + CRLF
+	if !empty(cSafra) .and. cSafra != "0"
+		cWhere1 += "		AND E1.E1_USAFRA = '" + cSafra + "' " + CRLF
+	endIf
+	if !empty(cCultura) .and. cCultura	!= "     "
+		cWhere1 += "		AND E1.E1_UCULTUR = '" + cCultura + "' " + CRLF
+	endIf
+
 	cWhere1 += "		AND E1.E1_SALDO <> 0 " + CRLF
 	cWhere1 += "		AND E1.D_E_L_E_T_ = '' " + CRLF
+
+	if cStatusTit != "1" // Todos
+		if cStatusTit == "2" // Pendente
+			cWhere1 += "		AND E1_SALDO <> 0 " + CRLF
+		elseIf cStatusTit == "3" // Quitado
+			cWhere1 += "		AND E1_SALDO = 0 " + CRLF
+		endIf
+	endIf
+
+	// Garante que mostra títulos apenas se existir D2
+	if cPrdG != "1"
+		cWhere1 += "		AND EXISTS ( " + CRLF
+		cWhere1 += "			SELECT " + CRLF // Inicio da cópia da query D2
+		cWhere1 += "				D2.R_E_C_N_O_ AS D2_REC " + CRLF // Excecao: não precisa dos campos da D2
+		cWhere1 += "			FROM " + CRLF
+		cWhere1 += "				SD2010 D2 " + CRLF
+		cWhere1 += "				INNER JOIN " + CRLF
+		cWhere1 += "					SF2010 F2 " + CRLF
+		cWhere1 += "					ON F2_DOC = D2_DOC " + CRLF
+		cWhere1 += "					AND F2_SERIE = D2_SERIE " + CRLF
+		cWhere1 += "					AND F2_CLIENTE = D2_CLIENTE " + CRLF
+		cWhere1 += "					AND F2_LOJA = D2_LOJA " + CRLF
+		cWhere1 += "					AND F2.D_E_L_E_T_ = '' " + CRLF
+		cWhere1 += "				INNER JOIN " + CRLF
+		cWhere1 += "					SB1010 B1 " + CRLF
+		cWhere1 += "					ON D2.D2_COD = B1.B1_COD " + CRLF
+		cWhere1 += "					AND B1.D_E_L_E_T_ = '' " + CRLF
+		cWhere1 += "			WHERE " + CRLF
+		cWhere1 += "				D2.D2_DOC = E1_NUM " + CRLF
+		cWhere1 += "				AND D2.D2_FILIAL = E1_FILORIG " + CRLF
+		cWhere1 += "				AND D2.D2_CLIENTE = E1_CLIENTE " + CRLF
+		cWhere1 += "				AND D2.D2_LOJA = E1_LOJA " + CRLF
+		if cPrdG == "2" // CRF
+			cWhere1 += "	AND B1.B1_GRUPO IN('2', '21', '2101') " + CRLF
+		elseIf cPrdG == "3" // Specialties
+			cWhere1 += "	AND B1.B1_GRUPO IN('1') " + CRLF
+		elseIf cPrdG == "4" // Biologics/BioControl
+			cWhere1 += "	AND B1.B1_GRUPO IN('3', '32') " + CRLF
+		endIf
+		cWhere1 += "				AND D2.D_E_L_E_T_ = '' " + CRLF
+		cWhere1 += "		) " + CRLF // Fim da copia da query D2
+	endIf
 
 	for nI := 1 to len(aAgrop)
 		for nJ := nI to len(aAgrop)
